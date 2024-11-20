@@ -1,7 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Stack, Tabs } from "expo-router";
+import { Stack, Tabs, useRouter } from "expo-router";
 
 export default function HomePageLayout() {
+
+    const router = useRouter()
+
     return (
         <Tabs screenOptions={{
             tabBarStyle: {
@@ -29,6 +32,15 @@ export default function HomePageLayout() {
                 tabBarLabel: "Settings",
                 tabBarActiveTintColor: "white",
             }}/>
+            <Tabs.Screen name="details" options={{
+                href:null,
+                headerRight: () => (
+                    <Ionicons name="exit-outline" size={24} color="gray" style={{marginRight: 10}} onPress={() => router.back()}/>
+                ),
+                headerTitle: "Vehicle Details",
+                tabBarStyle: {display: "none"}
+            }}/>
+          
         </Tabs>
     )
 }
