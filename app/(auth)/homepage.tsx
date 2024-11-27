@@ -2,6 +2,7 @@ import { FlatList, Image, ListRenderItem, ScrollView, StyleSheet, Text, TextInpu
 import React from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Data = {
     name: string,
@@ -11,7 +12,8 @@ type Data = {
     carModel: string,
     carPass: string,
     personLogo: string,
-    topSpeed: string
+    topSpeed: string,
+    showroom: any
 }
 
 const Homepage = () => {
@@ -33,6 +35,11 @@ const carSpecs = [
     {name: 'person-outline', detail: '4 Pass'}, 
 ]
 
+const CarShop = [
+    {name: 'Kai and Karo', latitude: 1.2160, longitude: 36.8347},
+    {name: 'Lanchaster Car Shop', latitude: 1.2944, longitude: 36.7973},
+]
+
 const vehicle = [
     {
         name: 'Peugeot 207', 
@@ -42,7 +49,8 @@ const vehicle = [
         carModel: 'hatchback', 
         carPass: '4 Pass',
         personLogo: 'person-outline',
-        topSpeed: "180km/h"
+        topSpeed: "180km/h",
+        showroom: CarShop.find(car => car.name === 'Kai and Karo')
     },
     {
         name: 'Peugeot 208', 
@@ -52,28 +60,10 @@ const vehicle = [
         carModel: 'hatchback', 
         carPass: '4 Pass',
         personLogo: 'person-outline',
-        topSpeed: "160km/h"
+        topSpeed: "160km/h",
+        showroom: CarShop.find(car => car.name === 'Lanchaster Car Shop')
     },
-    {
-        name: 'Peugeot 209', 
-        logo: require('@/vehicleImages/peugeot207.jpeg'),
-        price: '$ 100 / day', 
-        carType: 'car-sport-outline',
-        carModel: 'hatchback', 
-        carPass: '4 Pass',
-        personLogo: 'person-outline',
-        topSpeed: "180km/h"
-    },
-    {
-        name: 'Peugeot 210', 
-        logo: require('@/vehicleImages/peugeot207.jpeg'),
-        price: '$ 100 / day', 
-        carType: 'car-sport-outline',
-        carModel: 'hatchback',
-        carPass: '4 Pass',
-        personLogo: 'person-outline',
-        topSpeed: "180km/h"
-    },
+    
 ]
 
 const renderItem : ListRenderItem<Data> = ({item}) => {
@@ -86,7 +76,10 @@ const renderItem : ListRenderItem<Data> = ({item}) => {
                 price: item.price,
                 carType: item.carType,
                 model: item.carModel,
-                topSpeed: item.topSpeed
+                topSpeed: item.topSpeed,
+                showroom: item.showroom.name,
+                latitude: item.showroom.latitude,
+                longitude: item.showroom.longitude
 
             }
         })}>
@@ -121,7 +114,7 @@ const renderItem : ListRenderItem<Data> = ({item}) => {
 };
 
   return (
-    <View style={styles.containor}>
+    <SafeAreaView style={styles.containor}>
       <Text style={styles.header} >RENT A CAR ANYTIME</Text>
       <View style={styles.inputContainer}>
         <TextInput style={styles.textInput} placeholder='Type The Car To search'/>
@@ -143,7 +136,7 @@ const renderItem : ListRenderItem<Data> = ({item}) => {
         renderItem={renderItem}
         keyExtractor={(item) => item.name.toString()}
         showsVerticalScrollIndicator={false}/>
-    </View>
+    </SafeAreaView>
 
     
   )
@@ -194,7 +187,7 @@ const styles = StyleSheet.create({
         
     },
     vehicleCard:{
-        borderWidth: 2,
+        boxShadow: "0 8px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 6px rgba(0, 0, 0, 0.40)",
         margin: 10,
         padding: 10,
         borderRadius: 20,

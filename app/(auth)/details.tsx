@@ -2,11 +2,14 @@ import { Image, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps'
 
 const Details = () => {
 
 
-    const {name, logo , price , carType , model , carPrice, topSpeed } = useLocalSearchParams()
+    const {name, logo , price , carType , model , carPrice, topSpeed ,latitude,longitude } = useLocalSearchParams()
+
+
 
   return (
     <SafeAreaView style={styles.containor}>
@@ -16,23 +19,37 @@ const Details = () => {
             style={styles.vehicleImage} 
             resizeMode="contain"
             />
-        <Text style={styles.specsHeader}>CAR SPECIFICATION</Text>
-        <View style={styles.specsContainor}>
-            <View style={styles.specs}>
-                <Text style={styles.specsText}>Car Model</Text>
-                <Text style={styles.specsDetail}>{model}</Text>
+            <Text style={styles.specsHeader}>CAR SPECIFICATION</Text>
+            <View style={styles.specsContainor}>
+                <View style={styles.specs}>
+                    <Text style={styles.specsText}>Car Model</Text>
+                    <Text style={styles.specsDetail}>{model}</Text>
+                </View>
+                <View style={styles.specs}>
+                    <Text style={styles.specsText}>Car Price</Text>
+                    <Text style={styles.specsDetail}>{price}</Text>
+                </View>
+                <View style={styles.specs}>
+                    <Text style={styles.specsText}>Top Speed</Text>
+                    <Text style={styles.specsDetail}>{topSpeed}</Text>
+                </View>
             </View>
-            <View style={styles.specs}>
-                <Text style={styles.specsText}>Car Price</Text>
-                <Text style={styles.specsDetail}>{price}</Text>
-            </View>
-            <View style={styles.specs}>
-                <Text style={styles.specsText}>Top Speed</Text>
-                <Text style={styles.specsDetail}>{topSpeed}</Text>
-            </View>
-        </View>
-        <View>
-            
+        <View style={styles.mapView}>
+            {/* <MapView
+                provider={PROVIDER_GOOGLE}
+                showsUserLocation
+                initialRegion={{
+                    latitude: latitude as any,
+                    longitude: longitude as any,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421
+                }}
+                style={{
+                    width: "auto",  
+                    height: "50%",
+                    borderRadius: 10,
+                    margin: 10,}}
+                />   */}
         </View>
     </View>
     </SafeAreaView>
@@ -93,5 +110,10 @@ const styles = StyleSheet.create({
     specsDetail:{
         fontSize: 15,
         margin: 5
+    },
+    mapView:{
+        height: "auto",
+        width: "auto",
+        margin: 10
     }
 })
