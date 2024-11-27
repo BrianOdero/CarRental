@@ -1,6 +1,7 @@
 import { AuthProvider, useAuth } from "@/provider/AuthProvider";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
 
@@ -33,7 +34,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <InitialLayout/>
+        <InitialLayout/>
     </AuthProvider>
   )
 }

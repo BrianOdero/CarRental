@@ -1,13 +1,43 @@
-import { Image, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { Alert, Button, Image, StyleSheet, Text, View } from 'react-native'
+import React, { useState } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps'
+import SwipeButton from 'rn-swipe-button'
 
 const Details = () => {
 
 
-    const {name, logo , price , carType , model , carPrice, topSpeed ,latitude,longitude } = useLocalSearchParams()
+    const {name, logo , price , carType , model , carPrice, topSpeed ,latitude,longitude } = useLocalSearchParams();
+
+
+    //for ensbling the swipeable button
+
+    const [disableCBButton, setDisableCBButton] = useState(false)
+    const defaultStatusMessage = 'swipe status appears here';
+    const [swipeStatusMessage, setSwipeStatusMessage] = useState(
+    defaultStatusMessage)
+
+
+
+
+    const forceResetLastButton: any = null;
+
+    const CheckoutButton = () => {
+        return(
+            <View style={{
+                width: 100, 
+                height: 30, 
+                backgroundColor: '#C70039', 
+                borderRadius: 5, 
+                justifyContent: 'center', 
+                alignItems: 'center'
+                }}>
+                <Text style={{color: '#ffffff'}}>Checkout</Text>
+            </View>
+        );
+      } 
+
+     
 
 
 
@@ -33,24 +63,12 @@ const Details = () => {
                     <Text style={styles.specsText}>Top Speed</Text>
                     <Text style={styles.specsDetail}>{topSpeed}</Text>
                 </View>
+                
             </View>
-        <View style={styles.mapView}>
-            {/* <MapView
-                provider={PROVIDER_GOOGLE}
-                showsUserLocation
-                initialRegion={{
-                    latitude: latitude as any,
-                    longitude: longitude as any,
-                    latitudeDelta: 0.0922,
-                    longitudeDelta: 0.0421
-                }}
-                style={{
-                    width: "auto",  
-                    height: "50%",
-                    borderRadius: 10,
-                    margin: 10,}}
-                />   */}
-        </View>
+        <View style={styles.buttonView}>
+        <Button title='Confirm Booking' color='black' />
+          </View>
+       
     </View>
     </SafeAreaView>
   )
@@ -111,7 +129,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         margin: 5
     },
-    mapView:{
+    buttonView:{
         height: "auto",
         width: "auto",
         margin: 10

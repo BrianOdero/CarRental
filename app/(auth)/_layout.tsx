@@ -34,11 +34,11 @@ export default function HomePageLayout() {
             }}/>
             <Tabs.Screen name="details" options={{
                 href:null,
-                headerRight: () => (
-                    <Ionicons name="exit-outline" size={24} color="gray" style={{marginRight: 10}} onPress={() => router.back()}/>
+                headerLeft: () => (
+                    <Ionicons name="arrow-back-outline" size={24} color="gray" style={{marginRight: 20,marginLeft: 10}} onPress={() => router.back()}/>
                 ),
                 headerTitle: "Vehicle Details",
-                tabBarStyle: {display: "none"}
+                tabBarStyle: {display: "none"},
             }}/>
           
         </Tabs>
