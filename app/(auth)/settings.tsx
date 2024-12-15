@@ -15,8 +15,6 @@ export default function Settings() {
     } else {
       Alert.alert('SignOut successful');
       router.replace('/');
-      const user = supabase.auth.getUser();
-      console.log('User is: ', user);
        // Redirect to login or another page
     }
   };

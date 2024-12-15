@@ -13,6 +13,22 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
 
 
+  const logInsert = async () => {
+    const {data,error} = await supabase
+    .from('loginLogs')
+    .insert({
+      user_email: email
+    })
+    .select()
+    .single()
+
+
+    if(data) console.log('User data inserted into loginLogs:', data)
+    if(error) console.log(error)
+
+  }
+
+
 
   const login = async () => {
     setLoading(true);
@@ -27,6 +43,7 @@ export default function Index() {
       setLoading(false)
     }else{
       Alert.alert("Login Successful")
+      logInsert()
       setEmail("")
       setPassword("")
       setLoading(false)
