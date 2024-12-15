@@ -2,44 +2,14 @@ import { Alert, Button, Image, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import SwipeButton from 'rn-swipe-button'
+import { Callout, Marker } from 'react-native-maps'
+
 
 const Details = () => {
 
 
+
     const {name, logo , price , carType , model , carPrice, topSpeed ,latitude,longitude } = useLocalSearchParams();
-
-
-    //for ensbling the swipeable button
-
-    const [disableCBButton, setDisableCBButton] = useState(false)
-    const defaultStatusMessage = 'swipe status appears here';
-    const [swipeStatusMessage, setSwipeStatusMessage] = useState(
-    defaultStatusMessage)
-
-
-
-
-    const forceResetLastButton: any = null;
-
-    const CheckoutButton = () => {
-        return(
-            <View style={{
-                width: 100, 
-                height: 30, 
-                backgroundColor: '#C70039', 
-                borderRadius: 5, 
-                justifyContent: 'center', 
-                alignItems: 'center'
-                }}>
-                <Text style={{color: '#ffffff'}}>Checkout</Text>
-            </View>
-        );
-      } 
-
-     
-
-
 
   return (
     <SafeAreaView style={styles.containor}>
@@ -63,10 +33,13 @@ const Details = () => {
                     <Text style={styles.specsText}>Top Speed</Text>
                     <Text style={styles.specsDetail}>{topSpeed}</Text>
                 </View>
+            </View>
+            <View style={styles.mapView}>
+                {/* will use this vierw for viewing the vehicle interior images */}
                 
             </View>
-        <View style={styles.buttonView}>
-        <Button title='Confirm Booking' color='black' />
+            <View style={styles.buttonView}>
+              <Button title='Confirm Booking' color='black' />
           </View>
        
     </View>
@@ -128,6 +101,11 @@ const styles = StyleSheet.create({
     specsDetail:{
         fontSize: 15,
         margin: 5
+    },
+    mapView:{
+        width: "100%",
+        height: "40%",
+        padding: 10
     },
     buttonView:{
         height: "auto",

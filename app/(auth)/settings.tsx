@@ -1,9 +1,27 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet, Alert } from 'react-native';
 import Icon from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import supabase from '@/DBconfig/supabaseClient';
 
 export default function Settings() {
+
+
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+    } else {
+      Alert.alert('SignOut successful');
+      router.replace('/');
+      const user = supabase.auth.getUser();
+      console.log('User is: ', user);
+       // Redirect to login or another page
+    }
+  };
+  
+  
     
 
     const router = useRouter();
@@ -22,22 +40,24 @@ export default function Settings() {
       { icon: 'information-circle-outline', label: 'About Developer' },
     ]},
     { section: 'LOGOUT', items: [
-        { icon: 'log-out-outline', label: 'Logout' },
+        { icon: 'log-out-outline', label: 'Logout', onPress: signOut },
       ]}
   ];
 
-  const renderSettingsItem = (item: { icon: string; label: string; link: string }, index: number, isLast: boolean) => (
-    <TouchableOpacity key={index} style={[styles.settingsItem, !isLast && styles.settingsItemBorder]} onPress={() => router.push(item.link as any)}>
-
+  const renderSettingsItem = (item: { icon: string; label: string; link?: string; onPress?: () => void }, index: number, isLast: boolean) => (
+    <TouchableOpacity
+      key={index}
+      style={[styles.settingsItem, !isLast && styles.settingsItemBorder]}
+      onPress={item.onPress ? item.onPress : () => item.link && router.push(item.link as any)}
+    >
       <View style={styles.settingsItemContent}>
         <Icon name={item.icon as any} size={24} color="black" style={styles.settingsItemIcon} />
         <Text style={styles.settingsItemLabel}>{item.label}</Text>
       </View>
-
       <Icon name="chevron-forward-outline" size={20} color="black" />
-
     </TouchableOpacity>
   );
+  
 
   return (
     <SafeAreaView style={styles.container}>

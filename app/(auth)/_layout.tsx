@@ -40,6 +40,7 @@ export default function HomePageLayout() {
                 headerTitle: "Vehicle Details",
                 tabBarStyle: {display: "none"},
             }}/>
+           
           
         </Tabs>
     )
