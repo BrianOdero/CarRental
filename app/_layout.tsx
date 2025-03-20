@@ -15,7 +15,7 @@ export default function RootLayout() {
     useEffect(() => {
       if(!initialized) return;
 
-      const InAuthGroup = segments[0] === 'auth' as any;
+      const InAuthGroup = segments[0] === '(auth)' as any;
 
       //navigate to home page if authenticated
       if(session && !InAuthGroup){

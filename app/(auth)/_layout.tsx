@@ -1,12 +1,15 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, Tabs, useRouter } from "expo-router";
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 
 export default function HomePageLayout() {
 
     const router = useRouter()
+    const queryClient = new QueryClient()
 
     return (
-        <Tabs screenOptions={{
+       <QueryClientProvider client={queryClient}>
+             <Tabs screenOptions={{
             tabBarStyle: {
                 borderRadius: 10,
                 borderColor: "black",
@@ -25,6 +28,7 @@ export default function HomePageLayout() {
                 tabBarIcon: ({color}) => (<Ionicons name="list" size={24} color={color} />),
                 tabBarLabel: "Records",
                 tabBarActiveTintColor: "white",
+                
             }}/>
             <Tabs.Screen name="settings" options={{
                 headerShown: false,
@@ -40,8 +44,14 @@ export default function HomePageLayout() {
                 headerTitle: "Vehicle Details",
                 tabBarStyle: {display: "none"},
             }}/>
+            <Tabs.Screen name="[id]" options={{
+                href: null,
+                tabBarStyle: {display: "none"},
+                headerShown: false
+            }}/>
            
           
         </Tabs>
+       </QueryClientProvider>
     )
 }

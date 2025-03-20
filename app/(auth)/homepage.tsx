@@ -1,233 +1,338 @@
-import { FlatList, Image, ListRenderItem, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+"use client"
 
-type Data = {
-  name: string;
-  logo: any;
-  price: string;
-  carType: string | any;
-  carModel: string;
-  carPass: string;
-  personLogo: string | any;
-  topSpeed: string;
-  showroom: { name: string; latitude: number; longitude: number };
-  latitude: number;
-  longitude: number;
-};
+import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { useState } from "react"
+import Ionicons from "@expo/vector-icons/Ionicons"
+import { useRouter } from "expo-router"
+import { SafeAreaView } from "react-native-safe-area-context"
+import supabase from "@/DBconfig/supabaseClient"
+import { useQuery } from "@tanstack/react-query"
 
+type vehicleData = {
+  id: string
+  name: string
+  logo: string
+  price: string
+  carType: string
+  carPass: string
+  personLogo: string
+  topSpeed: string
+  carBrand: string
+  show_room: string
+  location: string
+  rating: number
+  reviews: number
+}
+
+// Car brand data
 const carBrands = [
-  { name: 'Honda', logo: require('@/vehicleImages/toyotaLogo.jpeg') },
-  { name: 'Toyota', logo: require('@/vehicleImages/toyotaLogo.jpeg') },
-  { name: 'Mercedes', logo: require('@/vehicleImages/mercedesLogo.jpeg') },
-  { name: 'BMW', logo: require('@/vehicleImages/bmwLogo.jpeg') },
-  { name: 'Mitsubishi', logo: require('@/vehicleImages/mitsubishiLogo.jpeg') },
-  { name: 'Peugeot', logo: require('@/vehicleImages/peugeotLogo.jpeg') },
-];
-
-const CarShop = [
-  { name: 'Kai and Karo', latitude: 1.2160, longitude: 36.8347 },
-  { name: 'Lanchaster Car Shop', latitude: 1.2944, longitude: 36.7973 },
-];
-
-const vehicleData = [
-  {
-    name: 'Peugeot 207',
-    logo: require('@/vehicleImages/peugeot207.jpeg'),
-    price: '$ 100 / day',
-    carType: 'car-sport-outline',
-    carModel: 'Hatchback',
-    carPass: '4 Pass',
-    personLogo: 'person-outline',
-    topSpeed: '180km/h',
-    showroom: CarShop.find(car => car.name === 'Kai and Karo') || { latitude: 0, longitude: 0, name: 'Unknown' },
-    latitude: 1.2160,
-    longitude: 36.8347,
-  },
-  {
-    name: 'Peugeot 208',
-    logo: require('@/vehicleImages/peugeot207.jpeg'),
-    price: '$ 100 / day',
-    carType: 'car-sport-outline',
-    carModel: 'Hatchback',
-    carPass: '4 Pass',
-    personLogo: 'person-outline',
-    topSpeed: '160km/h',
-    showroom: CarShop.find(car => car.name === 'Lanchaster Car Shop') || { latitude: 0, longitude: 0, name: 'Unknown' },
-    latitude: 1.2944,
-    longitude: 36.7973,
-  },
-];
-
-const VehicleCard: React.FC<{ item: Data }> = ({ item }) => {
-  const router = useRouter();
-
-  return (
-    <TouchableOpacity
-      onPress={() =>
-        router.push({
-          pathname: '/details',
-          params: {
-            name: item.name,
-            logo: item.logo,
-            price: item.price,
-            carType: item.carType,
-            model: item.carModel,
-            topSpeed: item.topSpeed,
-            showroom: item.showroom?.name,
-            latitude: item.showroom?.latitude || 0, // Ensure proper latitude
-            longitude: item.showroom?.longitude || 0, // Ensure proper longitude
-          },
-        })
-      }
-    >
-      <View style={styles.vehicleCard}>
-        <Image source={item.logo} style={styles.vehicleImage} resizeMode="contain" />
-        <View style={styles.vehiclePricingView}>
-          <Text style={styles.vehicleName}>{item.name}</Text>
-          <Text style={styles.priceText}>{item.price}</Text>
-        </View>
-        <View style={styles.vehicleData}>
-          <View style={styles.vehicleDetails}>
-            <Ionicons name={item.carType} size={20} color="black" style={styles.iconSpacing} />
-            <Text>{item.carModel}</Text>
-          </View>
-          <View style={styles.vehicleDetails}>
-            <Ionicons name={item.personLogo} size={20} color="black" style={styles.iconSpacing} />
-            <Text>{item.carPass}</Text>
-          </View>
-          <View style={styles.vehicleDetails}>
-            <Ionicons name={item.carType} size={20} color="black" style={styles.iconSpacing} />
-            <Text>{item.carModel}</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-const BrandTag: React.FC<{ brand: { name: string; logo: any } }> = ({ brand }) => {
-  return (
-    <View style={styles.brandTags}>
-      <Text>{brand.name}</Text>
-      <Image source={brand.logo} style={styles.brandImage} />
-    </View>
-  );
-};
+  { id: "all", name: "All" },
+  { id: "toyota", name: "Toyota" },
+  { id: "tesla", name: "Tesla" },
+  { id: "bmw", name: "BMW" },
+]
 
 const Homepage = () => {
+  const router = useRouter()
+  const [selectedBrand, setSelectedBrand] = useState<string>("all")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+
+  // Filter vehicles based on search term and selected brand
+  const filterVehicles = (vehicles: vehicleData[], searchTerm: string, brand: string) => {
+    let filtered = vehicles
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (vehicle) =>
+          vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          vehicle.carBrand.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    }
+
+    // Apply brand filter
+    if (brand && brand !== "all") {
+      filtered = filtered.filter((vehicle) => vehicle.carBrand.toLowerCase() === brand.toLowerCase())
+    }
+
+    return filtered
+  }
+
+  const fetchVehicle = async () => {
+    const { data, error } = await supabase.from("Vehicle").select("*").order("price", { ascending: false })
+
+    if (error) throw error
+
+    // Add mock location, rating and reviews data since they're in the UI but not in the original data
+    return (data as vehicleData[]).map((vehicle) => ({
+      ...vehicle,
+      location: "New York",
+      rating: 4.9,
+      reviews: 128,
+    }))
+  }
+
+  // tanstack query to fetch data
+  const { data: vehicles, isLoading } = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: fetchVehicle,
+  })
+
+  // Update the handlePress function
+  const handlePress = (item: vehicleData) => {
+    router.push({
+      pathname: "/(auth)/[id]" as any,
+      params: {
+        name: item.name,
+        logo: item.logo,
+        price: Number.parseInt(item.price),
+        carType: item.carType,
+        carPass: item.carPass,
+        carBrand: item.carBrand,
+        topSpeed: item.topSpeed,
+        showroom: item.show_room,
+      },
+    })
+  }
+
+  const VehicleCard = ({ item }: { item: vehicleData }) => {
+    return (
+      <TouchableOpacity onPress={() => handlePress(item)} style={styles.vehicleCard}>
+        <View style={styles.cardContent}>
+          <Image source={{ uri: item.logo }} style={styles.vehicleImage} resizeMode="cover" />
+          <View style={styles.vehicleDetails}>
+            <Text style={styles.vehicleName}>{item.carBrand} {item.name}</Text>
+            <View style={styles.locationContainer}>
+              <Ionicons name="location-outline" size={14} color="black" />
+              <Text style={styles.locationText}>{item.show_room} show room</Text>
+            </View>
+           
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceText}>${item.price}/day</Text>
+              <View style={styles.actionIcons}>
+                <TouchableOpacity style={styles.iconButton}>
+                  <Ionicons name="person-circle-outline" size={20} color="#666" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton}>
+                  <Ionicons name="heart-outline" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    )
+  }
+
+  const BrandFilter = ({ brand }: { brand: { id: string; name: string } }) => {
+    const isSelected = selectedBrand === brand.id
+
+    return (
+      <TouchableOpacity
+        style={[styles.brandFilter, isSelected && styles.selectedBrandFilter]}
+        onPress={() => setSelectedBrand(brand.id)}
+      >
+        <Text style={[styles.brandText, isSelected && styles.selectedBrandText]}>{brand.name}</Text>
+      </TouchableOpacity>
+    )
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>RENT A CAR ANYTIME</Text>
+      <Text style={styles.header}>Browse Cars</Text>
 
       {/* Search input */}
-      <View style={styles.inputContainer}>
-        <TextInput style={styles.textInput} placeholder="Type The Car To search" />
-        <Ionicons name="search-outline" size={24} color="black" />
+      <View style={styles.searchContainer}>
+        <TextInput style={styles.searchInput} placeholder="Search" value={searchTerm} onChangeText={setSearchTerm} />
+        <TouchableOpacity style={styles.searchIcon}>
+          <Ionicons name="search-outline" size={20} color="#666" />
+        </TouchableOpacity>
       </View>
 
-      {/* Available Brands */}
-      <Text style={styles.brandsText}>Available Brands</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {carBrands.map((brand, index) => (
-          <BrandTag key={index} brand={brand} />
+      {/* Brand filters */}
+      <View style={styles.brandFiltersContainer}>
+        {carBrands.map((brand) => (
+          <BrandFilter key={brand.id} brand={brand} />
         ))}
-      </ScrollView>
+      </View>
+
+      {/* Available Cars header with filter */}
+      <View style={styles.availableCarsHeader}>
+        <Text style={styles.availableCarsText}>Available Cars</Text>
+        <TouchableOpacity style={styles.filterIcon}>
+          <Ionicons name="options-outline" size={20} color="#666" />
+        </TouchableOpacity>
+      </View>
 
       {/* Vehicle List */}
-      <FlatList
-        data={vehicleData}
-        renderItem={({ item }) => <VehicleCard item={item} />}
-        keyExtractor={(item) => item.name.toString()}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <Text style={styles.loadingText}>Loading...</Text>
+      ) : (
+        <FlatList
+          data={filterVehicles(vehicles || [], searchTerm, selectedBrand)}
+          renderItem={({ item }) => <VehicleCard item={item} />}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    padding: 16,
   },
   header: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    margin: 10,
-    fontFamily: 'serif',
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#333",
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 50,
-    borderColor: 'black',
-    borderWidth: 2,
-    borderRadius: 10,
-    margin: 10,
-  },
-  textInput: {
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
     height: 40,
-    width: '85%',
-    margin: 10,
   },
-  brandImage: {
-    height: 30,
-    width: 30,
-    margin: 10,
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 14,
   },
-  brandTags: {
-    margin: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    padding: 5,
-    borderRadius: 10,
+  searchIcon: {
+    padding: 4,
+  },
+  brandFiltersContainer: {
+    flexDirection: "row",
+    marginBottom: 16,
+  },
+  brandFilter: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: "white",
+  },
+  selectedBrandFilter: {
+    backgroundColor: "#000",
+  },
+  brandText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  selectedBrandText: {
+    color: "white",
+  },
+  availableCarsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  availableCarsText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  filterIcon: {
+    padding: 4,
+  },
+  listContainer: {
+    paddingBottom: 16,
   },
   vehicleCard: {
-    boxShadow: '0 8px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 6px rgba(0, 0, 0, 0.4)',
-    margin: 10,
-    padding: 10,
-    borderRadius: 20,
+    backgroundColor: "white",
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  vehicleName: {
-    textAlign: 'left',
-    fontSize: 16,
-    fontFamily: 'serif',
-    fontWeight: 'bold',
-    margin: 10,
-    marginHorizontal: 15,
+  cardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10
   },
   vehicleImage: {
-    height: 150,
-    width: 'auto',
-  },
-  vehiclePricingView: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    margin: 10,
-  },
-  priceText: {
-    color: 'green',
-    textAlign: 'right',
-    margin: 10,
-    marginHorizontal: 20,
-  },
-  vehicleData: {
-    flexDirection: 'row',
+    width: 140,
+    height: 80,
+    borderRadius: 8,
+    margin: 12,
   },
   vehicleDetails: {
-    flexDirection: 'row',
     flex: 1,
-    margin: 5,
-    justifyContent: 'space-evenly',
+    padding: 12,
   },
-  iconSpacing: {
-    marginRight: 10,
+  vehicleName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#333",
   },
-  brandsText: {
-    margin: 10,
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
   },
-});
+  locationText: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 4,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: "#666",
+    marginLeft: 4,
+  },
+  priceContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  priceText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#f90",
+    backgroundColor: "rgba(255, 153, 0, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  actionIcons: {
+    flexDirection: "row",
+  },
+  iconButton: {
+    marginLeft: 8,
+  },
+  loadingText: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#666",
+  },
+})
 
-export default Homepage;
+export default Homepage
+
+
+    // // Validate phone number
+    // if (!phoneNumber || phoneNumber.length !== 9) {
+    //   Alert.alert('Invalid phone number');
+    //   console.error("Invalid phone number. Please enter 9 digits.");
+    //   return;
+    // }
+
