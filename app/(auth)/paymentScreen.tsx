@@ -33,7 +33,8 @@ export default function PaymentScreen() {
 
   const price = params.price
   const logo = params.logo
-  const vehicle_name = `${params.carBrand} ${params.name}`
+  const vehicle_name = params.vehicle_name
+ 
 
   // Calculate days between dates
   useEffect(() => {
@@ -178,6 +179,18 @@ export default function PaymentScreen() {
 
     console.log("✅ Resolved status:", status)
 
+    const readableStartDate = startDate.toLocaleDateString("en-KE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+      
+      const readableEndDate = endDate.toLocaleDateString("en-KE", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+
     const { data, error } = await supabase
       .from("Records")
       .insert({
@@ -187,10 +200,11 @@ export default function PaymentScreen() {
         checkoutID: checkoutID,
         transaction: "CustomerPayBillOnline",
         vehicle_image: logo,
+        vehicle_name:vehicle_name,
         pickup_mode: pickupMode,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        duration: Number.parseInt(numberOfDays),
+        start_date: readableStartDate,
+        end_date: readableEndDate,
+        duration: numberOfDays,
       })
       .select("id")
 
