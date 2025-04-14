@@ -1,92 +1,144 @@
-import supabase from "@/DBconfig/supabaseClient"
-import Ionicons from "@expo/vector-icons/Ionicons"
-import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert } from "react-native"
+"use client"
+import { View, Text, StyleSheet, FlatList, Image, SafeAreaView, TouchableOpacity, StatusBar } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
 
-// Define the payment record type
-type PaymentRecord = {
+// Define the booking record type
+type BookingRecord = {
   id: string
-  status: "pending" | "paid"
+  vehicleName: string
+  bookingDate: string
+  pickupType: "Self Pickup" | "Arrange Drop"
+  location: string
   amount: string
-  timePaid: string
+  duration: string
+  status: "upcoming" | "completed" | "cancelled"
+  imageUrl: string
 }
 
 // Sample data
-const paymentData: PaymentRecord[] = [
-  { id: "1", status: "pending", amount: "$250.00", timePaid: "Jan 23, 2024" },
-  { id: "2", status: "paid", amount: "$175.50", timePaid: "Jan 27, 2024" },
-  { id: "3", status: "pending", amount: "$320.00", timePaid: "Jan 14, 2024" },
-  { id: "4", status: "paid", amount: "$95.75", timePaid: "Jan 06, 2024" },
-  { id: "5", status: "pending", amount: "$430.25", timePaid: "Jan 08, 2024" },
+const bookingData: BookingRecord[] = [
+  {
+    id: "1",
+    vehicleName: "Ferrari GTC4",
+    bookingDate: "15 Jun 22, 11:00 am",
+    pickupType: "Self Pickup",
+    location: "Hamilton, NewYork",
+    amount: "$60.00",
+    duration: "1 day 0 hrs",
+    status: "upcoming",
+    imageUrl:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
+  },
+  {
+    id: "2",
+    vehicleName: "Range Rover",
+    bookingDate: "10 Jun 22, 11:00 am",
+    pickupType: "Arrange Drop",
+    location: "Bridgston, NewYork",
+    amount: "$50.00",
+    duration: "2 days 4 hrs",
+    status: "completed",
+    imageUrl:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
+  },
+  {
+    id: "3",
+    vehicleName: "Audi A8",
+    bookingDate: "2 Jun 22, 11:00 am",
+    pickupType: "Self Pickup",
+    location: "Manhattan, NewYork",
+    amount: "$65.00",
+    duration: "1 day 6 hrs",
+    status: "completed",
+    imageUrl:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
+  },
+  {
+    id: "4",
+    vehicleName: "BMW X5",
+    bookingDate: "28 May 22, 10:00 am",
+    pickupType: "Arrange Drop",
+    location: "Brooklyn, NewYork",
+    amount: "$75.00",
+    duration: "3 days 0 hrs",
+    status: "cancelled",
+    imageUrl:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
+  },
+  {
+    id: "5",
+    vehicleName: "Mercedes GLE",
+    bookingDate: "20 May 22, 9:00 am",
+    pickupType: "Self Pickup",
+    location: "Queens, NewYork",
+    amount: "$80.00",
+    duration: "2 days 12 hrs",
+    status: "completed",
+    imageUrl:
+      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
+  },
 ]
 
-interface Records {
-  id: number;
-  time_paid: string; // ISO timestamp format
-  number: string | null; // Nullable text field
-  amount: number;
-  transaction_type: string;
-  status: string;
-}
+export default function VehicleBookingHistory() {
+  const getCardColor = (status: string) => {
+    switch (status) {
+      case "upcoming":
+        return "#1E88E5" // Blue for upcoming
+      case "completed":
+        return "#212121" // Dark for completed
+      case "cancelled":
+        return "#757575" // Gray for cancelled
+      default:
+        return "#212121"
+    }
+  }
 
-// Helper function to format ISO timestamp
-const formatDate = (isoString: string) => {
-  const date = new Date(isoString);
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "upcoming":
+        return "Upcoming"
+      case "completed":
+        return "Completed"
+      case "cancelled":
+        return "Cancelled"
+      default:
+        return status
+    }
+  }
 
-const Records = () => {
-
-  const fetchRecords = async (): Promise<Records[]> => {
-    const { data, error } = await supabase.from('Records').select('*').order('id', { ascending: false });
-    if (error) throw new Error(error.message);
-    return data;
-  };
-
-  const queryClient = useQueryClient()
-
-  const { data: records, isLoading, error } = useQuery({
-    queryKey: ['records'],
-    queryFn: fetchRecords
-  })
-
-
-  const deleteAllLogs = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('Records').delete().neq('id', 0);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['records'] as any);
-      Alert.alert('Success', 'All logs deleted successfully');
-    },
-    onError: () => {
-      Alert.alert('Error', 'Failed to delete logs');
-    },
-  });
-
-  const renderItem = ({ item }: { item: Records }) => {
-    const isPaid = item.status === "paid"
+  const renderItem = ({ item }: { item: BookingRecord }) => {
+    const cardColor = getCardColor(item.status)
 
     return (
-      <View style={styles.row}>
-        <View style={styles.cell}>
-          <View style={[styles.statusContainer, isPaid ? styles.paidStatus : styles.pendingStatus]}>
-            <View style={[styles.statusDot, isPaid ? styles.paidDot : styles.pendingDot]} />
-            <Text style={styles.statusText}>{isPaid ? "Paid" : "Pending"}</Text>
+      <View style={[styles.bookingCard, { backgroundColor: cardColor }]}>
+        <View style={styles.bookingInfo}>
+          <Text style={styles.vehicleName}>{item.vehicleName}</Text>
+          <Text style={styles.bookingDate}>{item.bookingDate}</Text>
+
+          <View style={styles.divider} />
+
+          <View style={styles.pickupContainer}>
+            <Text style={styles.pickupType}>{item.pickupType}</Text>
+            <Text style={styles.amount}>{item.amount}</Text>
+          </View>
+
+          <View style={styles.locationContainer}>
+            <View style={styles.locationIconContainer}>
+              <Ionicons name="location-outline" size={16} color="#ffffff80" />
+            </View>
+            <Text style={styles.locationText}>{item.location}</Text>
+            <Text style={styles.durationText}>{item.duration}</Text>
+          </View>
+
+          <View style={styles.statusContainer}>
+            <Text style={[styles.statusText, { color: cardColor === "#1E88E5" ? "#BBDEFB" : "#757575" }]}>
+              {getStatusText(item.status)}
+            </Text>
           </View>
         </View>
-        <View style={styles.cell}>
-          <Text style={styles.cellText}>KSh {item.amount}/=</Text>
-        </View>
-        <View style={styles.cell}>
-          <Text style={styles.cellText}>{item.number}</Text>
+
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: item.imageUrl }} style={styles.vehicleImage} />
         </View>
       </View>
     )
@@ -94,35 +146,23 @@ const Records = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      <StatusBar barStyle="dark-content" />
 
-
-      <Text style={{ fontSize: 20, alignSelf: 'center', marginVertical: 10 }}>PAYMENT RECORDS</Text>
-
-      <View style={styles.headerRow}>
-        <View style={styles.cell}>
-          <Text style={styles.headerText}>Payment Status</Text>
-        </View>
-        <View style={styles.cell}>
-          <Text style={styles.headerText}>Amount Paid</Text>
-        </View>
-        <View style={styles.cell}>
-          <Text style={styles.headerText}>Phone number</Text>
-        </View>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Booking History</Text>
+        <View style={{ width: 24 }} />
       </View>
 
-      {/* List */}
-
       <FlatList
-        data={records}
+        data={bookingData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
       />
-
-      <TouchableOpacity style={styles.trashButton} onPress={() => deleteAllLogs.mutate()}>
-        <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-      </TouchableOpacity>
     </SafeAreaView>
   )
 }
@@ -132,80 +172,103 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
-  headerRow: {
-    flexDirection: "row",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "#f9f9f9",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  headerText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
-  },
-  row: {
-    flexDirection: "row",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-    backgroundColor: "white",
-  },
-  cell: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  cellText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  statusContainer: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    alignSelf: "flex-start",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  pendingStatus: {
-    backgroundColor: "rgba(0, 122, 255, 0.1)",
+  backButton: {
+    padding: 8,
   },
-  paidStatus: {
-    backgroundColor: "rgba(52, 199, 89, 0.2)",
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  pendingDot: {
-    backgroundColor: "#007AFF", // Blue dot for pending
-  },
-  paidDot: {
-    backgroundColor: "#34C759", // Green dot for paid
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: "500",
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "600",
   },
   listContent: {
-    flexGrow: 1,
+    padding: 16,
+    paddingTop: 8,
   },
-  trashButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#EF4444',
-    borderRadius: 30,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 10,
+  bookingCard: {
+    flexDirection: "row",
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: "hidden",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  bookingInfo: {
+    flex: 1,
+    padding: 16,
+  },
+  vehicleName: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  bookingDate: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    marginBottom: 12,
+  },
+  pickupContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  pickupType: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  amount: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  locationIconContainer: {
+    marginRight: 4,
+  },
+  locationText: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 14,
+    flex: 1,
+  },
+  durationText: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 14,
+  },
+  statusContainer: {
+    marginTop: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  imageContainer: {
+    width: 120,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  vehicleImage: {
+    width: 120,
+    height: 80,
+    resizeMode: "contain",
   },
 })
-
-export default Records

@@ -33,8 +33,11 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
+    <GestureHandlerRootView>
+      <AuthProvider>
         <InitialLayout/>
-    </AuthProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
+    
   )
 }

@@ -19,23 +19,28 @@ type vehicleData = {
   topSpeed: string
   carBrand: string
   show_room: string
-  location: string
-  rating: number
-  reviews: number
+  transmission: string
+  description: string
+  ownerName: string
+  ownerNumber: number
+  doorCount: number
+  HorsePower: number
 }
 
 // Car brand data
 const carBrands = [
   { id: "all", name: "All" },
   { id: "toyota", name: "Toyota" },
-  { id: "tesla", name: "Tesla" },
+  { id: "mitsubishi", name: "Mitsubishi" },
   { id: "bmw", name: "BMW" },
+  {id: "honda", name: "Honda"}
 ]
 
 const Homepage = () => {
   const router = useRouter()
   const [selectedBrand, setSelectedBrand] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
+
 
   // Filter vehicles based on search term and selected brand
   const filterVehicles = (vehicles: vehicleData[], searchTerm: string, brand: string) => {
@@ -91,6 +96,12 @@ const Homepage = () => {
         carBrand: item.carBrand,
         topSpeed: item.topSpeed,
         showroom: item.show_room,
+        transmission: item.transmission,
+        descriptiom: item.description,
+        ownerName: item.ownerName,
+        ownerNumber: item.ownerNumber,
+        doorCount: item.doorCount,
+        HP: item.HorsePower
       },
     })
   }
@@ -104,11 +115,11 @@ const Homepage = () => {
             <Text style={styles.vehicleName}>{item.carBrand} {item.name}</Text>
             <View style={styles.locationContainer}>
               <Ionicons name="location-outline" size={14} color="black" />
-              <Text style={styles.locationText}>{item.show_room} show room</Text>
+              <Text style={styles.locationText}>{item.show_room} showroom</Text>
             </View>
            
             <View style={styles.priceContainer}>
-              <Text style={styles.priceText}>${item.price}/day</Text>
+              <Text style={styles.priceText}>Ksh {item.price} per day</Text>
               <View style={styles.actionIcons}>
                 <TouchableOpacity style={styles.iconButton}>
                   <Ionicons name="person-circle-outline" size={20} color="#666" />
@@ -139,7 +150,7 @@ const Homepage = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Browse Cars</Text>
+      <Text style={styles.header}>Book A Vehicle Anytime</Text>
 
       {/* Search input */}
       <View style={styles.searchContainer}>
