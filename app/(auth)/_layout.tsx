@@ -26,7 +26,7 @@ export default function HomePageLayout() {
             }}/>
             <Tabs.Screen name="map" options={{
                 headerTitle: "Maps And SHowrooms",
-                tabBarIcon: ({color}) => (<Ionicons name="map-outline" size={24} color={color} />)
+                tabBarIcon: ({color}) => (<Ionicons name="map" size={24} color={color} />)
             }}/>
             <Tabs.Screen name="records" options={{
                 headerShown: false,

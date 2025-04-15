@@ -1,0 +1,30 @@
+[
+    {
+      "id": "1",
+      "name": "Lancaster Motors Showroom",
+      "brand": "Lancaster",
+      "latitude": -1.2921,
+      "longitude": 36.8219,
+      "address": "Kenyatta Avenue, Nairobi"
+
+    },
+    {
+      "id": "2",
+      "name": "Kai Motors",
+      "brand": "Kai",
+      "latitude": -1.286389,
+      "longitude": 36.817223,
+      "address": "Moi Avenue, Nairobi"
+    
+    },
+    {
+      "id": "3",
+      "name": "Karo Motors",
+      "brand": "Karo",
+      "latitude": -1.3000,
+      "longitude": 36.8000,
+      "address": "Ngong Road, Nairobi"
+
+    }
+  ]
+  

@@ -1,8 +1,22 @@
 "use client"
-import { View, Text, StyleSheet, FlatList, Image, SafeAreaView, TouchableOpacity, StatusBar } from "react-native"
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  SafeAreaView,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import supabase from "@/DBconfig/supabaseClient"
+import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
 
-// Define the booking record type
+// Booking record structure for display
 type BookingRecord = {
   id: string
   vehicleName: string
@@ -15,79 +29,33 @@ type BookingRecord = {
   imageUrl: string
 }
 
-// Sample data
-const bookingData: BookingRecord[] = [
-  {
-    id: "1",
-    vehicleName: "Ferrari GTC4",
-    bookingDate: "15 Jun 22, 11:00 am",
-    pickupType: "Self Pickup",
-    location: "Hamilton, NewYork",
-    amount: "$60.00",
-    duration: "1 day 0 hrs",
-    status: "upcoming",
-    imageUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
-  },
-  {
-    id: "2",
-    vehicleName: "Range Rover",
-    bookingDate: "10 Jun 22, 11:00 am",
-    pickupType: "Arrange Drop",
-    location: "Bridgston, NewYork",
-    amount: "$50.00",
-    duration: "2 days 4 hrs",
-    status: "completed",
-    imageUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
-  },
-  {
-    id: "3",
-    vehicleName: "Audi A8",
-    bookingDate: "2 Jun 22, 11:00 am",
-    pickupType: "Self Pickup",
-    location: "Manhattan, NewYork",
-    amount: "$65.00",
-    duration: "1 day 6 hrs",
-    status: "completed",
-    imageUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
-  },
-  {
-    id: "4",
-    vehicleName: "BMW X5",
-    bookingDate: "28 May 22, 10:00 am",
-    pickupType: "Arrange Drop",
-    location: "Brooklyn, NewYork",
-    amount: "$75.00",
-    duration: "3 days 0 hrs",
-    status: "cancelled",
-    imageUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
-  },
-  {
-    id: "5",
-    vehicleName: "Mercedes GLE",
-    bookingDate: "20 May 22, 9:00 am",
-    pickupType: "Self Pickup",
-    location: "Queens, NewYork",
-    amount: "$80.00",
-    duration: "2 days 12 hrs",
-    status: "completed",
-    imageUrl:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/placeholder-ob7miW3mUreePYfXdVwkpFWHthzoR5.svg?height=150&width=150",
-  },
-]
+// Raw structure from Supabase
+type Records = {
+  number: string
+  amount: number
+  status: string
+  checkoutID: string
+  transaction: string
+  vehicle_name: string
+  vehicle_image: string
+  pickup_mode: string
+  duration: string
+  start_date: string
+  end_date: string
+}
 
+// Main component
 export default function VehicleBookingHistory() {
+  const [refreshing, setRefreshing] = useState(false)
+
   const getCardColor = (status: string) => {
     switch (status) {
-      case "upcoming":
-        return "#1E88E5" // Blue for upcoming
-      case "completed":
-        return "#212121" // Dark for completed
+      case "failed":
+        return "#EB4D42"
+      case "paid":
+        return "#42CC35"
       case "cancelled":
-        return "#757575" // Gray for cancelled
+        return "#757575"
       default:
         return "#212121"
     }
@@ -104,6 +72,41 @@ export default function VehicleBookingHistory() {
       default:
         return status
     }
+  }
+
+  const fetchRecords = async () => {
+    const { data, error } = await supabase.from("Records").select("*").order("id", { ascending: false })
+    if (error) throw error
+    return data as Records[]
+  }
+
+  const {
+    data: records,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["records"],
+    queryFn: fetchRecords,
+  })
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await refetch()
+    setRefreshing(false)
+  }
+
+  const transformRecordsToBookingData = (records: Records[]): BookingRecord[] => {
+    return records.map((record) => ({
+      id: record.checkoutID || Math.random().toString(),
+      vehicleName: record.vehicle_name,
+      bookingDate: new Date(record.start_date).toLocaleString(),
+      pickupType: record.pickup_mode === "Self Pickup" ? "Self Pickup" : "Arrange Drop",
+      location: "Nairobi, Kenya",
+      amount: `Ksh ${record.amount}`,
+      duration: record.duration,
+      status: record.status as "upcoming" | "completed" | "cancelled",
+      imageUrl: record.vehicle_image,
+    }))
   }
 
   const renderItem = ({ item }: { item: BookingRecord }) => {
@@ -127,12 +130,12 @@ export default function VehicleBookingHistory() {
               <Ionicons name="location-outline" size={16} color="#ffffff80" />
             </View>
             <Text style={styles.locationText}>{item.location}</Text>
-            <Text style={styles.durationText}>{item.duration}</Text>
+            <Text style={styles.durationText}>Dur.: {item.duration} days</Text>
           </View>
 
           <View style={styles.statusContainer}>
-            <Text style={[styles.statusText, { color: cardColor === "#1E88E5" ? "#BBDEFB" : "#757575" }]}>
-              {getStatusText(item.status)}
+            <Text style={[styles.statusText, { color: cardColor === "#EB4D42" ? "#BBDEFB" : "#757575" }]}>
+              Payment Status: {getStatusText(item.status)}
             </Text>
           </View>
         </View>
@@ -141,6 +144,14 @@ export default function VehicleBookingHistory() {
           <Image source={{ uri: item.imageUrl }} style={styles.vehicleImage} />
         </View>
       </View>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#1E88E5" style={{ marginTop: 50 }} />
+      </SafeAreaView>
     )
   }
 
@@ -157,11 +168,14 @@ export default function VehicleBookingHistory() {
       </View>
 
       <FlatList
-        data={bookingData}
+        data={records ? transformRecordsToBookingData(records) : []}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1E88E5" />
+        }
       />
     </SafeAreaView>
   )

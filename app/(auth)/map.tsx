@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import MapView, { Callout, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Callout, MapMarker, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import supabase from '@/DBconfig/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
@@ -8,14 +8,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 type Showroom = {
   id: number;
-  showroomName: string;
+  name: string;
+  brand: string;
   latitude: number;
   longitude: number;
+  address: string;
 };
 
 const Map = () => {
   const [mapReady, setMapReady] = useState(false);
-  
+
   // Default region centered on Nairobi
   const nairobiRegion = {
     latitude: -1.2921,
@@ -29,18 +31,17 @@ const Map = () => {
       const { data, error } = await supabase
         .from('Showrooms')
         .select('*')
-        .order('showroomName', { ascending: true });
+        .order('name', { ascending: true });
 
       if (error) {
         console.error('Error fetching showrooms:', error);
         throw error;
       }
-      
-      // Validate coordinates to ensure they're numbers
+
       return data?.map(showroom => ({
         ...showroom,
         latitude: Number(showroom.latitude),
-        longitude: Number(showroom.longitude)
+        longitude: Number(showroom.longitude),
       })) || [];
     } catch (error) {
       console.error('Failed to fetch showrooms:', error);
@@ -53,7 +54,6 @@ const Map = () => {
     queryFn: fetchShowRooms,
   });
 
-  // Log data for debugging
   useEffect(() => {
     if (showrooms) {
       console.log('Showrooms data:', showrooms);
@@ -84,34 +84,27 @@ const Map = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MapView 
-        provider={PROVIDER_GOOGLE} 
-        style={styles.mapview} 
+      <MapView
+        provider={PROVIDER_GOOGLE}
+        style={styles.mapview}
         initialRegion={nairobiRegion}
         onMapReady={() => setMapReady(true)}
         showsUserLocation
         showsMyLocationButton
       >
-        {mapReady && showrooms && showrooms.length > 0 && showrooms.map((showroom, index) => (
-          <Marker
-            key={showroom.id || index}
+        {showrooms?.map((marker, index) => (
+          <MapMarker
+            key={index}
             coordinate={{
-              latitude: showroom.latitude,
-              longitude: showroom.longitude,
+              latitude: marker.latitude,
+              longitude: marker.longitude,
             }}
-            title={showroom.showroomName}
-            description={`Showroom location: ${showroom.showroomName}`}
-            pinColor="#0066ff"
-          >
-            <Callout>
-                <View>
-                    <Ionicons name='car-sport-outline' size={20} color='#0066ff'/>
-                </View>
-            </Callout>
-          </Marker>
+            title={marker.name}
+            description={marker.address}
+          />
         ))}
       </MapView>
-      
+
       {/* Optional overlay to show how many showrooms are displayed */}
       {showrooms && (
         <View style={styles.infoOverlay}>
@@ -134,7 +127,6 @@ const styles = StyleSheet.create({
   mapview: {
     width: 'auto',
     height: '100%',
-
   },
   loadingContainer: {
     flex: 1,

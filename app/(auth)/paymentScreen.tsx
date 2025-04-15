@@ -95,9 +95,9 @@ export default function PaymentScreen() {
           "Timestamp": timestamp,
           "TransactionType": "CustomerPayBillOnline",
           "Amount": 1,
-          "PartyA": 254721503973,
+          "PartyA": Number(phoneNumber),
           "PartyB": 174379,
-          "PhoneNumber": 254721503973,
+          "PhoneNumber": Number(phoneNumber),
           "CallBackURL": "https://alluring-flow-production-7d19.up.railway.app/callback",
           "AccountReference": "CompanyXLTD",
           "TransactionDesc": "Payment of X"
@@ -202,8 +202,8 @@ export default function PaymentScreen() {
         vehicle_image: logo,
         vehicle_name:vehicle_name,
         pickup_mode: pickupMode,
-        start_date: readableStartDate,
-        end_date: readableEndDate,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
         duration: numberOfDays,
       })
       .select("id")

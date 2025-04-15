@@ -1,6 +1,14 @@
 "use client"
 
-import { FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native"
 import { useState } from "react"
 import Ionicons from "@expo/vector-icons/Ionicons"
 import { useRouter } from "expo-router"
@@ -27,26 +35,27 @@ type vehicleData = {
   HorsePower: number
 }
 
-// Car brand data
 const carBrands = [
   { id: "all", name: "All" },
   { id: "toyota", name: "Toyota" },
   { id: "mitsubishi", name: "Mitsubishi" },
   { id: "bmw", name: "BMW" },
-  {id: "honda", name: "Honda"}
+  { id: "honda", name: "Honda" },
 ]
 
 const Homepage = () => {
   const router = useRouter()
   const [selectedBrand, setSelectedBrand] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
+  const [refreshing, setRefreshing] = useState<boolean>(false)
 
-
-  // Filter vehicles based on search term and selected brand
-  const filterVehicles = (vehicles: vehicleData[], searchTerm: string, brand: string) => {
+  const filterVehicles = (
+    vehicles: vehicleData[] = [],
+    searchTerm: string,
+    brand: string,
+  ) => {
     let filtered = vehicles
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (vehicle) =>
@@ -55,20 +64,23 @@ const Homepage = () => {
       )
     }
 
-    // Apply brand filter
-    if (brand && brand !== "all") {
-      filtered = filtered.filter((vehicle) => vehicle.carBrand.toLowerCase() === brand.toLowerCase())
+    if (brand !== "all") {
+      filtered = filtered.filter(
+        (vehicle) => vehicle.carBrand.toLowerCase() === brand.toLowerCase(),
+      )
     }
 
     return filtered
   }
 
   const fetchVehicle = async () => {
-    const { data, error } = await supabase.from("Vehicle").select("*").order("price", { ascending: false })
+    const { data, error } = await supabase
+      .from("Vehicle")
+      .select("*")
+      .order("price", { ascending: false })
 
     if (error) throw error
 
-    // Add mock location, rating and reviews data since they're in the UI but not in the original data
     return (data as vehicleData[]).map((vehicle) => ({
       ...vehicle,
       location: "New York",
@@ -77,13 +89,21 @@ const Homepage = () => {
     }))
   }
 
-  // tanstack query to fetch data
-  const { data: vehicles, isLoading } = useQuery({
+  const {
+    data: vehicles,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["vehicles"],
     queryFn: fetchVehicle,
   })
 
-  // Update the handlePress function
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await refetch()
+    setRefreshing(false)
+  }
+
   const handlePress = (item: vehicleData) => {
     router.push({
       pathname: "/(auth)/[id]" as any,
@@ -101,52 +121,50 @@ const Homepage = () => {
         ownerName: item.ownerName,
         ownerNumber: item.ownerNumber,
         doorCount: item.doorCount,
-        HP: item.HorsePower
+        HP: item.HorsePower,
       },
     })
   }
 
-  const VehicleCard = ({ item }: { item: vehicleData }) => {
-    return (
-      <TouchableOpacity onPress={() => handlePress(item)} style={styles.vehicleCard}>
-        <View style={styles.cardContent}>
-          <Image source={{ uri: item.logo }} style={styles.vehicleImage} resizeMode="cover" />
-          <View style={styles.vehicleDetails}>
-            <Text style={styles.vehicleName}>{item.carBrand} {item.name}</Text>
-            <View style={styles.locationContainer}>
-              <Ionicons name="location-outline" size={14} color="black" />
-              <Text style={styles.locationText}>{item.show_room} showroom</Text>
-            </View>
-           
-            <View style={styles.priceContainer}>
-              <Text style={styles.priceText}>Ksh {item.price} per day</Text>
-              <View style={styles.actionIcons}>
-                <TouchableOpacity style={styles.iconButton}>
-                  <Ionicons name="person-circle-outline" size={20} color="#666" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton}>
-                  <Ionicons name="heart-outline" size={20} color="#666" />
-                </TouchableOpacity>
-              </View>
+  const filteredVehicles = filterVehicles(vehicles, searchTerm, selectedBrand)
+
+  const VehicleCard = ({ item }: { item: vehicleData }) => (
+    <TouchableOpacity
+      onPress={() => handlePress(item)}
+      style={styles.vehicleCard}
+    >
+      <View style={styles.cardContent}>
+        <Image
+          source={{ uri: item.logo }}
+          style={styles.vehicleImage}
+          resizeMode="cover"
+        />
+        <View style={styles.vehicleDetails}>
+          <Text style={styles.vehicleName}>
+            {item.carBrand} {item.name}
+          </Text>
+          <View style={styles.locationContainer}>
+            <Ionicons name="location-outline" size={14} color="black" />
+            <Text style={styles.locationText}>
+              {item.show_room} showroom
+            </Text>
+          </View>
+
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceText}>Ksh {item.price} per day</Text>
+            <View style={styles.actionIcons}>
+              <TouchableOpacity style={styles.iconButton}>
+                <Ionicons name="person-circle-outline" size={20} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconButton}>
+                <Ionicons name="heart-outline" size={20} color="#666" />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-    )
-  }
-
-  const BrandFilter = ({ brand }: { brand: { id: string; name: string } }) => {
-    const isSelected = selectedBrand === brand.id
-
-    return (
-      <TouchableOpacity
-        style={[styles.brandFilter, isSelected && styles.selectedBrandFilter]}
-        onPress={() => setSelectedBrand(brand.id)}
-      >
-        <Text style={[styles.brandText, isSelected && styles.selectedBrandText]}>{brand.name}</Text>
-      </TouchableOpacity>
-    )
-  }
+      </View>
+    </TouchableOpacity>
+  )
 
   return (
     <SafeAreaView style={styles.container}>
@@ -154,7 +172,12 @@ const Homepage = () => {
 
       {/* Search input */}
       <View style={styles.searchContainer}>
-        <TextInput style={styles.searchInput} placeholder="Search" value={searchTerm} onChangeText={setSearchTerm} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+        />
         <TouchableOpacity style={styles.searchIcon}>
           <Ionicons name="search-outline" size={20} color="#666" />
         </TouchableOpacity>
@@ -162,12 +185,31 @@ const Homepage = () => {
 
       {/* Brand filters */}
       <View style={styles.brandFiltersContainer}>
-        {carBrands.map((brand) => (
-          <BrandFilter key={brand.id} brand={brand} />
-        ))}
+        {carBrands.map((brand) => {
+          const isSelected = selectedBrand === brand.id
+          return (
+            <TouchableOpacity
+              key={brand.id}
+              style={[
+                styles.brandFilter,
+                isSelected && styles.selectedBrandFilter,
+              ]}
+              onPress={() => setSelectedBrand(brand.id)}
+            >
+              <Text
+                style={[
+                  styles.brandText,
+                  isSelected && styles.selectedBrandText,
+                ]}
+              >
+                {brand.name}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
       </View>
 
-      {/* Available Cars header with filter */}
+      {/* Available Cars header */}
       <View style={styles.availableCarsHeader}>
         <Text style={styles.availableCarsText}>Available Cars</Text>
         <TouchableOpacity style={styles.filterIcon}>
@@ -175,16 +217,20 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Vehicle List */}
+      {/* Vehicle List or Fallback */}
       {isLoading ? (
         <Text style={styles.loadingText}>Loading...</Text>
+      ) : filteredVehicles.length === 0 ? (
+        <Text style={styles.loadingText}>No vehicles available</Text>
       ) : (
         <FlatList
-          data={filterVehicles(vehicles || [], searchTerm, selectedBrand)}
+          data={filteredVehicles}
           renderItem={({ item }) => <VehicleCard item={item} />}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
       )}
     </SafeAreaView>
@@ -272,7 +318,7 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10
+    padding: 10,
   },
   vehicleImage: {
     width: 140,
@@ -300,16 +346,6 @@ const styles = StyleSheet.create({
     color: "#666",
     marginLeft: 4,
   },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  ratingText: {
-    fontSize: 12,
-    color: "#666",
-    marginLeft: 4,
-  },
   priceContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -334,16 +370,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     color: "#666",
+    fontSize: 16,
   },
 })
 
 export default Homepage
-
-
-    // // Validate phone number
-    // if (!phoneNumber || phoneNumber.length !== 9) {
-    //   Alert.alert('Invalid phone number');
-    //   console.error("Invalid phone number. Please enter 9 digits.");
-    //   return;
-    // }
-
