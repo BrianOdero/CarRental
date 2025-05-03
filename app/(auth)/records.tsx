@@ -25,7 +25,7 @@ type BookingRecord = {
   location: string
   amount: string
   duration: string
-  status: "upcoming" | "completed" | "cancelled"
+  status: string
   imageUrl: string
 }
 
@@ -48,27 +48,30 @@ type Records = {
 export default function VehicleBookingHistory() {
   const [refreshing, setRefreshing] = useState(false)
 
-  const getCardColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
       case "failed":
-        return "#EB4D42"
-      case "paid":
-        return "#42CC35"
+        return "#FF4444" // Light red
       case "cancelled":
-        return "#757575"
+        return "black" // Light yellow
+      case "completed":
+      case "paid":
+        return "#4CAF50" // Light green
       default:
-        return "#212121"
+        return "#757575" // Default grey
     }
   }
 
   const getStatusText = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "upcoming":
         return "Upcoming"
       case "completed":
         return "Completed"
       case "cancelled":
         return "Cancelled"
+      case "failed":
+        return "Failed"
       default:
         return status
     }
@@ -104,16 +107,16 @@ export default function VehicleBookingHistory() {
       location: "Nairobi, Kenya",
       amount: `Ksh ${record.amount}`,
       duration: record.duration,
-      status: record.status as "upcoming" | "completed" | "cancelled",
+      status: record.status,
       imageUrl: record.vehicle_image,
     }))
   }
 
   const renderItem = ({ item }: { item: BookingRecord }) => {
-    const cardColor = getCardColor(item.status)
+    const statusColor = getStatusColor(item.status)
 
     return (
-      <View style={[styles.bookingCard, { backgroundColor: cardColor }]}>
+      <View style={styles.bookingCard}>
         <View style={styles.bookingInfo}>
           <Text style={styles.vehicleName}>{item.vehicleName}</Text>
           <Text style={styles.bookingDate}>{item.bookingDate}</Text>
@@ -127,14 +130,14 @@ export default function VehicleBookingHistory() {
 
           <View style={styles.locationContainer}>
             <View style={styles.locationIconContainer}>
-              <Ionicons name="location-outline" size={16} color="#ffffff80" />
+              <Ionicons name="location-outline" size={16} color="rgba(0,0,0,0.5)" />
             </View>
             <Text style={styles.locationText}>{item.location}</Text>
             <Text style={styles.durationText}>Dur.: {item.duration} days</Text>
           </View>
 
           <View style={styles.statusContainer}>
-            <Text style={[styles.statusText, { color: cardColor === "#EB4D42" ? "#BBDEFB" : "#757575" }]}>
+            <Text style={[styles.statusText, { color: statusColor }]}>
               Payment Status: {getStatusText(item.status)}
             </Text>
           </View>
@@ -192,6 +195,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: "#ffffff",
   },
   backButton: {
     padding: 8,
@@ -199,6 +203,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
+    color: "#000",
   },
   listContent: {
     padding: 16,
@@ -209,30 +214,31 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     overflow: "hidden",
+    backgroundColor: "#fff",
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   bookingInfo: {
     flex: 1,
     padding: 16,
   },
   vehicleName: {
-    color: "white",
+    color: "#212121",
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 4,
   },
   bookingDate: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "#666",
     fontSize: 14,
     marginBottom: 12,
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
     marginBottom: 12,
   },
   pickupContainer: {
@@ -242,12 +248,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pickupType: {
-    color: "white",
+    color: "#212121",
     fontSize: 16,
     fontWeight: "500",
   },
   amount: {
-    color: "white",
+    color: "#212121",
     fontSize: 16,
     fontWeight: "600",
   },
@@ -260,12 +266,12 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   locationText: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "#666",
     fontSize: 14,
     flex: 1,
   },
   durationText: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: "#666",
     fontSize: 14,
   },
   statusContainer: {
@@ -279,6 +285,7 @@ const styles = StyleSheet.create({
     width: 120,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#fff",
   },
   vehicleImage: {
     width: 120,

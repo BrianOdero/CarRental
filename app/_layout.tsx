@@ -1,43 +1,63 @@
 import { AuthProvider, useAuth } from "@/provider/AuthProvider";
-import { Slot, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { Slot, Stack, useRouter, useSegments } from "expo-router";
+import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ActivityIndicator, View } from "react-native";
 
 export default function RootLayout() {
-
-
   const InitialLayout = () => {
-    const {session, initialized} = useAuth()
+    const { session, initialized } = useAuth();
     const segments = useSegments();
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
 
-    //use Effect for redirecting based on authentication status
+    // Authentication middleware
     useEffect(() => {
-      if(!initialized) return;
-
-      const InAuthGroup = segments[0] === '(auth)' as any;
-
-      //navigate to home page if authenticated
-      if(session && !InAuthGroup){
-        router.replace('homepage' as any)
+      if (!initialized) {
+        setIsLoading(true);
+        return;
       }
 
-      //navigate to login if not authenticated
-      else if(!session && InAuthGroup){
-        router.replace('/')
+      const inAuthGroup = segments[0] === '(auth)';
+      
+      // Check authentication state and route accordingly
+      if (session) {
+        // Redirect authenticated users away from auth pages
+        if (!inAuthGroup) {
+          router.replace('/(auth)/homepage');
+        }
+      } else {
+        // Redirect unauthenticated users to login if trying to access protected routes
+        if (inAuthGroup) {
+          router.replace('/loginSignup');
+        }
       }
       
-    }, [session,initialized])
+      setIsLoading(false);
+    }, [session, initialized, segments]);
 
-    return <Slot/>
-  }
+    if (isLoading) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" />
+        </View>
+      );
+    }
+
+    return (
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="loginSignup" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      </Stack>
+    );
+  };
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <InitialLayout/>
+        <InitialLayout />
       </AuthProvider>
     </GestureHandlerRootView>
-    
-  )
+  );
 }

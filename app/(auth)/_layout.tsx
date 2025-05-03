@@ -35,6 +35,13 @@ export default function HomePageLayout() {
                 tabBarActiveTintColor: "white",
                 
             }}/>
+            {/* <Tabs.Screen name="chat" options={{
+                headerShown: false,
+                tabBarIcon: ({color}) => (<Ionicons name="list" size={24} color={color} />),
+                tabBarLabel: "Payment History",
+                tabBarActiveTintColor: "white",
+                
+            }}/> */}
             <Tabs.Screen name="settings" options={{
                 headerShown: false,
                 tabBarIcon: ({color}) => (<Ionicons name="settings" size={24} color={color} />),

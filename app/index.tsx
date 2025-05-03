@@ -1,173 +1,319 @@
-import { Alert, Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import LottieView from 'lottie-react-native'
-import { useState } from "react";
-import supabase from "@/DBconfig/supabaseClient";
-export default function Index() {
+"use client"
 
+import React, { useEffect, useState } from "react"
+import { SafeAreaView, StyleSheet, FlatList, View, Text, StatusBar, TouchableOpacity, Dimensions } from "react-native"
+import LottieView from "lottie-react-native"
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated"
+import { useRouter } from "expo-router"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+const { width, height } = Dimensions.get("window")
+const COLORS = { primary: "white", white: "#fff" }
 
+// Key for AsyncStorage
+const ONBOARDING_COMPLETE_KEY = "onboarding_complete"
 
-  const logInsert = async () => {
-    const {data,error} = await supabase
-    .from('loginLogs')
-    .insert({
-      user_email: email
-    })
-    .select()
-    .single()
+const slides = [
+  {
+    id: "0",
+    animation: require("@/assets/images/welcomeAnimation.json"),
+    title: "Welcome To CarSoko",
+    subtitle: "Your one stop shop for all your car needs.",
+  },
+  {
+    id: "1",
+    animation: require("@/assets/images/welcomeAnimation.json"),
+    title: "Find the Perfect Ride",
+    subtitle: "Explore a wide range of rental cars to suit your travel needs and budget.",
+  },
+  {
+    id: "2",
+    animation: require("@/assets/images/welcomeAnimation.json"),
+    title: "Book with Ease",
+    subtitle: "Choose your vehicle, schedule your pickup, and reserve instantly—anytime, anywhere.",
+  },
+  {
+    id: "3",
+    animation: require("@/assets/images/welcomeAnimation.json"),
+    title: "Drive with Confidence",
+    subtitle: "Enjoy a smooth rental experience with reliable vehicles and 24/7 support.",
+  },
+]
 
+const Slide = ({ item, onButtonPress }: { item: any; onButtonPress?: () => void }) => (
+  <View style={{ alignItems: "center", width }}>
+    <LottieView source={item.animation} autoPlay loop style={{ height: "75%", width }} />
+    <Text style={item.id === "0" ? styles.welcomeTitle : styles.title}>{item.title}</Text>
+    <Text style={item.id === "0" ? styles.welcomeSubtitle : styles.subtitle}>{item.subtitle}</Text>
+    {item.id === "0" && (
+      <TouchableOpacity onPress={onButtonPress} style={styles.getStartedButton} activeOpacity={0.7}>
+        <Text style={styles.getStartedText}>Finish Onboarding</Text>
+      </TouchableOpacity>
+    )}
+  </View>
+)
 
-    if(data) console.log('User data inserted into loginLogs:', data)
-    if(error) console.log(error)
+const OnboardingScreen = ({ navigation }: { navigation: any }) => {
+  const router = useRouter()
+  const [currentSlideIndex, setCurrentSlideIndex] = React.useState(0)
+  const ref = React.useRef<FlatList>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  }
+  // Entrance animation
+  const fadeIn = useSharedValue(0)
+  const slideIn = useSharedValue(40)
 
+  const entranceStyle = useAnimatedStyle(() => ({
+    opacity: fadeIn.value,
+    transform: [{ translateY: slideIn.value }],
+  }))
 
+  // Check if onboarding is completed
+  useEffect(() => {
+    checkOnboardingStatus()
+  }, [])
 
-  const login = async () => {
-    setLoading(true);
-    const {error} = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    if (error){
-      Alert.alert(error.message)
-      setEmail("")
-      setPassword("")
-      setLoading(false)
-    }else{
-      Alert.alert("Login Successful")
-      logInsert()
-      setEmail("")
-      setPassword("")
-      setLoading(false)
+  const checkOnboardingStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY)
+      if (value === "true") {
+        // Onboarding already completed, navigate to loginSignup
+        router.replace("/loginSignup")
+        return
+      }
+      // Show onboarding if not completed
+      setIsLoading(false)
+    } catch (error) {
+      console.error("Error checking onboarding status:", error)
+      setIsLoading(false)
     }
   }
 
-  const signup = async () => {
-    setLoading(true);
-    const {error} = await supabase.auth.signUp({
-      email,
-      password
-    })
-    if(error){
-      Alert.alert(error.message)
-      setEmail("")
-      setPassword("")
-      setLoading(false)
-    }else if(password !== confirmPassword){
-      Alert.alert("Passwords do not match")
-      setPassword("")
-      setConfirmPassword("")
-      setLoading(false)
-    }
-    else{
-      Alert.alert("Signup Successful")
-      setEmail("")
-      setPassword("")
-      setLoading(false)
-      setIsLogin(true)
+  // Mark onboarding as complete and navigate to loginSignup
+  const completeOnboarding = async () => {
+    try {
+      await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, "true")
+      router.replace("/loginSignup")
+    } catch (error) {
+      console.error("Error saving onboarding status:", error)
     }
   }
-  if (loading) return (
-    <View>
-      <LottieView source={require("../assets/images/loadingAnimation.json")} autoPlay loop style={{width:"auto", height: 250, marginVertical: 5}} />
+
+  useEffect(() => {
+    if (!isLoading) {
+      fadeIn.value = withTiming(1, { duration: 600 })
+      slideIn.value = withTiming(0, { duration: 600 })
+    }
+  }, [isLoading])
+
+  const updateCurrentSlideIndex = (e: any) => {
+    const contentOffsetX = e.nativeEvent.contentOffset.x
+    const currentIndex = Math.round(contentOffsetX / width)
+    setCurrentSlideIndex(currentIndex)
+  }
+
+  const goToNextSlide = () => {
+    const nextSlideIndex = currentSlideIndex + 1
+    if (nextSlideIndex < slides.length) {
+      const offset = nextSlideIndex * width
+      ref.current?.scrollToOffset({ offset })
+      setCurrentSlideIndex(nextSlideIndex)
+    }
+  }
+
+  const goToPrevSlide = () => {
+    const prevSlideIndex = currentSlideIndex - 1
+    if (prevSlideIndex >= 0) {
+      const offset = prevSlideIndex * width
+      ref.current?.scrollToOffset({ offset })
+      setCurrentSlideIndex(prevSlideIndex)
+    }
+  }
+
+  const skip = () => {
+    const lastSlideIndex = slides.length - 1
+    const offset = lastSlideIndex * width
+    ref.current?.scrollToOffset({ offset })
+    setCurrentSlideIndex(lastSlideIndex)
+  }
+
+  const Footer = () => (
+    <View style={styles.footerContainer}>
+      {currentSlideIndex !== 0 && (
+        <>
+          <View style={styles.indicatorContainer}>
+            {slides.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.indicator,
+                  currentSlideIndex === index && {
+                    backgroundColor: COLORS.white,
+                    width: 25,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+          <View style={styles.footerButtons}>
+            <TouchableOpacity activeOpacity={0.8} style={[styles.btn, styles.prevBtn]} onPress={goToPrevSlide}>
+              <Text style={styles.prevText}>PREV</Text>
+            </TouchableOpacity>
+            <View style={{ width: 15 }} />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={currentSlideIndex === slides.length - 1 ? completeOnboarding : goToNextSlide}
+              style={styles.btn}
+            >
+              <Text style={styles.nextText}>{currentSlideIndex === slides.length - 1 ? "GET STARTED" : "NEXT"}</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   )
 
+  if (isLoading) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: COLORS.primary, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    )
+  }
 
   return (
-    
-    <View style={styles.containor}>
-      <LottieView 
-        source={isLogin ? require("../assets/images/loginAnimation.json") : require("../assets/images/signupAnimation.json")} 
-        autoPlay 
-        loop
-        style={{width:"auto", height: 250, marginVertical: 5}} />
-      <Text style={styles.headerText}>{isLogin ? "LOGIN" : "SIGN UP"}</Text>
-      <Text style={{fontSize: 20,margin: 10,textAlign: "center"}}>{isLogin ? "Login to your account" : "Create a new account"}</Text>
-      <TextInput
-        placeholder="Enter Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.textInput}
-        />
-      
-        <TextInput
-          placeholder="Enter Password"
-          value={password}
-          onChangeText={setPassword}
-          style={styles.textInput}
-          secureTextEntry={!showPassword}
-        />
-        {!isLogin && (
-           <TextInput
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            style={styles.textInput}
-            secureTextEntry={!showPassword}
-        />
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.primary }}>
+      <StatusBar backgroundColor={COLORS.primary} />
+      <Animated.View style={[{ flex: 1 }, entranceStyle]}>
+        {/* Top-left Skip Button */}
+        {currentSlideIndex !== 0 && currentSlideIndex !== slides.length - 1 && (
+          <TouchableOpacity style={styles.topSkipButton} onPress={skip}>
+            <Text style={styles.topSkipText}>Skip</Text>
+          </TouchableOpacity>
         )}
-        
-        <TouchableOpacity onPress={isLogin ? login : signup}>
-          <View style={styles.submitButton} >
-            <Text style={{color: "white", fontWeight: "bold"}}>{isLogin ? "Login" : "Sign Up"}</Text>
-          </View>
-        </TouchableOpacity>
 
-       <TouchableOpacity onPress={() => {setIsLogin(!isLogin)}} style={{backgroundColor: "transparent", alignItems: "center",margin: 10}}>
-         <Text style={{margin: 10}}>{isLogin ? "Don't have an account?" : "Already have an account?"} <Text style={styles.link}>{isLogin ? "Sign Up" : "Login"}</Text>
-        </Text>
-       </TouchableOpacity>
-      
-    </View>
-  );
+        <FlatList
+          ref={ref}
+          onMomentumScrollEnd={updateCurrentSlideIndex}
+          contentContainerStyle={{ height: height * 0.65 }}
+          showsHorizontalScrollIndicator={false}
+          horizontal
+          data={slides}
+          pagingEnabled
+          renderItem={({ item }) => <Slide item={item} onButtonPress={goToNextSlide} />}
+          keyExtractor={(item) => item.id}
+        />
+        <Footer />
+      </Animated.View>
+    </SafeAreaView>
+  )
 }
 
 const styles = StyleSheet.create({
-  containor:{
-    flex: 1,
-    justifyContent: "center",
-    
-    
-  },headerText:{
+  subtitle: {
+    color: "#000",
+    fontSize: 13,
+    marginTop: 10,
+    maxWidth: "70%",
+    textAlign: "center",
+    lineHeight: 23,
+  },
+  title: {
+    color: "#000",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 20,
+    textAlign: "center",
+  },
+  welcomeTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    margin: 10,
-    textAlign:"center"
-    
+    textAlign: "center",
+    marginBottom: 10,
+    color: "#000",
   },
-  textInput:{
-    borderColor: "#007bff",
-    borderWidth: 1,
+  welcomeSubtitle: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "gray",
+    marginBottom: 20,
+  },
+  indicatorContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  indicator: {
+    height: 2.5,
+    width: 10,
+    backgroundColor: "blue",
+    marginHorizontal: 3,
+    borderRadius: 2,
+  },
+  btn: {
+    flex: 1,
+    height: 50,
     borderRadius: 5,
-    padding: 10,
-    margin: 10
-  },
-  inputContainer: {
-    width: '100%',
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'row',
-  },
-  submitButton:{
-    backgroundColor: "#007bff",
-    margin: 10,
-    borderRadius: 5,
-    width: "auto",
-    height: 40,
+    backgroundColor: "black",
     justifyContent: "center",
     alignItems: "center",
   },
-  link:{
-    color: "#007bff",
-    marginLeft: 10
-  }
+  prevBtn: {
+    backgroundColor: "black",
+    borderColor: "black",
+    borderWidth: 1,
+  },
+  prevText: {
+    fontWeight: "bold",
+    fontSize: 15,
+    color: "white",
+  },
+  nextText: {
+    fontWeight: "bold",
+    fontSize: 15,
+    color: "white"
+  },
+  footerButtons: {
+    marginBottom: 20,
+    flexDirection: "row",
+  },
+  footerContainer: {
+    height: height * 0.25,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  getStartedButton: {
+    backgroundColor: "black",
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 20,
+    width: 150,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  getStartedText: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "white"
+  },
+  topSkipButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    zIndex: 1,
+    padding: 10,
+  },
+  topSkipText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 })
+
+export default OnboardingScreen

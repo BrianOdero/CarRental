@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet, Alert } from 'react-native';
 import Icon from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import supabase from '@/DBconfig/supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Settings() {
+  const router = useRouter();
 
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const onboardingComplete = await AsyncStorage.getItem('onboarding_complete');
+        if (!onboardingComplete) {
+          // Redirect to root index.tsx in app folder
+          router.replace('/');
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        router.replace('/');
+      }
+    };
 
+    checkOnboarding();
+  }, []);
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -15,31 +32,49 @@ export default function Settings() {
     } else {
       Alert.alert('SignOut successful');
       router.replace('/');
-       // Redirect to login or another page
     }
   };
-  
-  
-    
 
-    const router = useRouter();
+  const clearData = async () => {
+    try {
+      await AsyncStorage.clear();
+      Alert.alert('Success', 'All local data has been cleared');
+      router.replace('/');
+    } catch (e) {
+      Alert.alert('Error', 'Failed to clear data');
+      console.error('Failed to clear async storage:', e);
+    }
+  };
 
   const settingsItems = [
-    { section: 'GENERAL', items: [
-      { icon: 'person-outline', label: 'Account', link: "/(settings)/account" },
-      { icon: 'trash-outline', label: 'Delete account' },
-    ]},
-    { section: 'FEEDBACK', items: [
-      { icon: 'bug-outline', label: 'Report a bug' },
-      { icon: 'paper-plane-outline', label: 'Send feedback' },
-    ]},
-    { section: 'ABOUT', items: [
-      { icon: 'help-circle-outline', label: 'Help' },
-      { icon: 'information-circle-outline', label: 'About Developer' },
-    ]},
-    { section: 'LOGOUT', items: [
+    { 
+      section: 'GENERAL', 
+      items: [
+        { icon: 'person-outline', label: 'Account', link: "/(settings)/account" },
+        { icon: 'trash-bin-outline', label: 'Clear Data', onPress: clearData },
+        { icon: 'trash-outline', label: 'Delete account' },
+      ]
+    },
+    { 
+      section: 'FEEDBACK', 
+      items: [
+        { icon: 'bug-outline', label: 'Report a bug' },
+        { icon: 'paper-plane-outline', label: 'Send feedback' },
+      ]
+    },
+    { 
+      section: 'ABOUT', 
+      items: [
+        { icon: 'help-circle-outline', label: 'Help' },
+        { icon: 'information-circle-outline', label: 'About Developer' },
+      ]
+    },
+    { 
+      section: 'LOGOUT', 
+      items: [
         { icon: 'log-out-outline', label: 'Logout', onPress: signOut },
-      ]}
+      ]
+    }
   ];
 
   const renderSettingsItem = (item: { icon: string; label: string; link?: string; onPress?: () => void }, index: number, isLast: boolean) => (
@@ -55,7 +90,6 @@ export default function Settings() {
       <Icon name="chevron-forward-outline" size={20} color="black" />
     </TouchableOpacity>
   );
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,23 +97,21 @@ export default function Settings() {
         <Text style={styles.title}>Settings</Text>
 
         {settingsItems.map((section, sectionIndex) => (
-
           <View key={sectionIndex} style={styles.section}>
             <Text style={styles.sectionTitle}>{section.section}</Text>
             <View style={styles.sectionContent}>
               {section.items.map((item, itemIndex) => 
                 renderSettingsItem(item as { icon: string; label: string; link: string }, itemIndex, itemIndex === section.items.length - 1)
               )}
-
             </View>
           </View>
         ))}
       </ScrollView>
-     
     </SafeAreaView>
   );
 }
 
+// Keep the existing styles object the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
