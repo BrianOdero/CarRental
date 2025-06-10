@@ -1,72 +1,41 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { SafeAreaView, StyleSheet, FlatList, View, Text, StatusBar, TouchableOpacity, Dimensions } from "react-native"
-import LottieView from "lottie-react-native"
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated"
+import { 
+  SafeAreaView, 
+  StyleSheet, 
+  View, 
+  Text, 
+  StatusBar, 
+  TouchableOpacity, 
+  Dimensions, 
+  Image,
+  ImageBackground
+} from "react-native"
 import { useRouter } from "expo-router"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { LinearGradient } from 'expo-linear-gradient'
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  withDelay,
+  withSpring
+} from "react-native-reanimated"
 
 const { width, height } = Dimensions.get("window")
-const COLORS = { primary: "white", white: "#fff" }
 
 // Key for AsyncStorage
 const ONBOARDING_COMPLETE_KEY = "onboarding_complete"
 
-const slides = [
-  {
-    id: "0",
-    animation: require("@/assets/images/welcomeAnimation.json"),
-    title: "Welcome To CarSoko",
-    subtitle: "Your one stop shop for all your car needs.",
-  },
-  {
-    id: "1",
-    animation: require("@/assets/images/welcomeAnimation.json"),
-    title: "Find the Perfect Ride",
-    subtitle: "Explore a wide range of rental cars to suit your travel needs and budget.",
-  },
-  {
-    id: "2",
-    animation: require("@/assets/images/welcomeAnimation.json"),
-    title: "Book with Ease",
-    subtitle: "Choose your vehicle, schedule your pickup, and reserve instantly—anytime, anywhere.",
-  },
-  {
-    id: "3",
-    animation: require("@/assets/images/welcomeAnimation.json"),
-    title: "Drive with Confidence",
-    subtitle: "Enjoy a smooth rental experience with reliable vehicles and 24/7 support.",
-  },
-]
-
-const Slide = ({ item, onButtonPress }: { item: any; onButtonPress?: () => void }) => (
-  <View style={{ alignItems: "center", width }}>
-    <LottieView source={item.animation} autoPlay loop style={{ height: "75%", width }} />
-    <Text style={item.id === "0" ? styles.welcomeTitle : styles.title}>{item.title}</Text>
-    <Text style={item.id === "0" ? styles.welcomeSubtitle : styles.subtitle}>{item.subtitle}</Text>
-    {item.id === "0" && (
-      <TouchableOpacity onPress={onButtonPress} style={styles.getStartedButton} activeOpacity={0.7}>
-        <Text style={styles.getStartedText}>Finish Onboarding</Text>
-      </TouchableOpacity>
-    )}
-  </View>
-)
-
-const OnboardingScreen = ({ navigation }: { navigation: any }) => {
+export default function LandingScreen() {
   const router = useRouter()
-  const [currentSlideIndex, setCurrentSlideIndex] = React.useState(0)
-  const ref = React.useRef<FlatList>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Entrance animation
+  // Animation values
   const fadeIn = useSharedValue(0)
-  const slideIn = useSharedValue(40)
-
-  const entranceStyle = useAnimatedStyle(() => ({
-    opacity: fadeIn.value,
-    transform: [{ translateY: slideIn.value }],
-  }))
+  const slideUp = useSharedValue(50)
+  const buttonScale = useSharedValue(0.8)
 
   // Check if onboarding is completed
   useEffect(() => {
@@ -81,12 +50,20 @@ const OnboardingScreen = ({ navigation }: { navigation: any }) => {
         router.replace("/loginSignup")
         return
       }
-      // Show onboarding if not completed
+      // Show landing page if not completed
       setIsLoading(false)
+      startAnimations()
     } catch (error) {
       console.error("Error checking onboarding status:", error)
       setIsLoading(false)
+      startAnimations()
     }
+  }
+
+  const startAnimations = () => {
+    fadeIn.value = withTiming(1, { duration: 800 })
+    slideUp.value = withTiming(0, { duration: 800 })
+    buttonScale.value = withDelay(400, withSpring(1, { damping: 15 }))
   }
 
   // Mark onboarding as complete and navigate to loginSignup
@@ -99,221 +76,264 @@ const OnboardingScreen = ({ navigation }: { navigation: any }) => {
     }
   }
 
-  useEffect(() => {
-    if (!isLoading) {
-      fadeIn.value = withTiming(1, { duration: 600 })
-      slideIn.value = withTiming(0, { duration: 600 })
-    }
-  }, [isLoading])
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: fadeIn.value,
+    transform: [{ translateY: slideUp.value }],
+  }))
 
-  const updateCurrentSlideIndex = (e: any) => {
-    const contentOffsetX = e.nativeEvent.contentOffset.x
-    const currentIndex = Math.round(contentOffsetX / width)
-    setCurrentSlideIndex(currentIndex)
-  }
-
-  const goToNextSlide = () => {
-    const nextSlideIndex = currentSlideIndex + 1
-    if (nextSlideIndex < slides.length) {
-      const offset = nextSlideIndex * width
-      ref.current?.scrollToOffset({ offset })
-      setCurrentSlideIndex(nextSlideIndex)
-    }
-  }
-
-  const goToPrevSlide = () => {
-    const prevSlideIndex = currentSlideIndex - 1
-    if (prevSlideIndex >= 0) {
-      const offset = prevSlideIndex * width
-      ref.current?.scrollToOffset({ offset })
-      setCurrentSlideIndex(prevSlideIndex)
-    }
-  }
-
-  const skip = () => {
-    const lastSlideIndex = slides.length - 1
-    const offset = lastSlideIndex * width
-    ref.current?.scrollToOffset({ offset })
-    setCurrentSlideIndex(lastSlideIndex)
-  }
-
-  const Footer = () => (
-    <View style={styles.footerContainer}>
-      {currentSlideIndex !== 0 && (
-        <>
-          <View style={styles.indicatorContainer}>
-            {slides.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.indicator,
-                  currentSlideIndex === index && {
-                    backgroundColor: COLORS.white,
-                    width: 25,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-          <View style={styles.footerButtons}>
-            <TouchableOpacity activeOpacity={0.8} style={[styles.btn, styles.prevBtn]} onPress={goToPrevSlide}>
-              <Text style={styles.prevText}>PREV</Text>
-            </TouchableOpacity>
-            <View style={{ width: 15 }} />
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={currentSlideIndex === slides.length - 1 ? completeOnboarding : goToNextSlide}
-              style={styles.btn}
-            >
-              <Text style={styles.nextText}>{currentSlideIndex === slides.length - 1 ? "GET STARTED" : "NEXT"}</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
-    </View>
-  )
+  const buttonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }))
 
   if (isLoading) {
     return (
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: COLORS.primary, justifyContent: "center", alignItems: "center" }}
-      >
-        <Text>Loading...</Text>
+      <SafeAreaView style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.primary }}>
-      <StatusBar backgroundColor={COLORS.primary} />
-      <Animated.View style={[{ flex: 1 }, entranceStyle]}>
-        {/* Top-left Skip Button */}
-        {currentSlideIndex !== 0 && currentSlideIndex !== slides.length - 1 && (
-          <TouchableOpacity style={styles.topSkipButton} onPress={skip}>
-            <Text style={styles.topSkipText}>Skip</Text>
-          </TouchableOpacity>
-        )}
-
-        <FlatList
-          ref={ref}
-          onMomentumScrollEnd={updateCurrentSlideIndex}
-          contentContainerStyle={{ height: height * 0.65 }}
-          showsHorizontalScrollIndicator={false}
-          horizontal
-          data={slides}
-          pagingEnabled
-          renderItem={({ item }) => <Slide item={item} onButtonPress={goToNextSlide} />}
-          keyExtractor={(item) => item.id}
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      
+      {/* Background Image */}
+      <ImageBackground
+        source={{ uri: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        {/* Gradient Overlay */}
+        <LinearGradient
+          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+          style={styles.gradientOverlay}
         />
-        <Footer />
-      </Animated.View>
+
+        <Animated.View style={[styles.content, containerStyle]}>
+          {/* Logo/Brand Section */}
+          <View style={styles.brandSection}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>CarSoko</Text>
+            </View>
+            <Text style={styles.tagline}>Premium Car Rentals</Text>
+          </View>
+
+          {/* Main Content */}
+          <View style={styles.mainContent}>
+            <Text style={styles.heroTitle}>
+              Find your perfect ride{'\n'}
+              <Text style={styles.heroTitleAccent}>when you're away from home</Text>
+            </Text>
+            
+            <Text style={styles.heroSubtitle}>
+              Discover luxury and comfort with our premium car rental service. 
+              Book instantly and drive with confidence wherever your journey takes you.
+            </Text>
+
+            {/* Features */}
+            <View style={styles.featuresContainer}>
+              <View style={styles.feature}>
+                <View style={styles.featureIcon}>
+                  <Text style={styles.featureIconText}>🚗</Text>
+                </View>
+                <Text style={styles.featureText}>Premium Vehicles</Text>
+              </View>
+              
+              <View style={styles.feature}>
+                <View style={styles.featureIcon}>
+                  <Text style={styles.featureIconText}>⚡</Text>
+                </View>
+                <Text style={styles.featureText}>Instant Booking</Text>
+              </View>
+              
+              <View style={styles.feature}>
+                <View style={styles.featureIcon}>
+                  <Text style={styles.featureIconText}>🛡️</Text>
+                </View>
+                <Text style={styles.featureText}>24/7 Support</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* CTA Button */}
+          <Animated.View style={[styles.ctaContainer, buttonStyle]}>
+            <TouchableOpacity 
+              style={styles.ctaButton} 
+              onPress={completeOnboarding}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.ctaButtonText}>Let's go!</Text>
+              <View style={styles.ctaButtonIcon}>
+                <Text style={styles.ctaButtonArrow}>→</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <Text style={styles.ctaSubtext}>
+              Join thousands of satisfied customers
+            </Text>
+          </Animated.View>
+        </Animated.View>
+      </ImageBackground>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  subtitle: {
-    color: "#000",
-    fontSize: 13,
-    marginTop: 10,
-    maxWidth: "70%",
-    textAlign: "center",
-    lineHeight: 23,
-  },
-  title: {
-    color: "#000",
-    fontSize: 22,
-    fontWeight: "bold",
-    marginTop: 20,
-    textAlign: "center",
-  },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 10,
-    color: "#000",
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    color: "gray",
-    marginBottom: 20,
-  },
-  indicatorContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  indicator: {
-    height: 2.5,
-    width: 10,
-    backgroundColor: "blue",
-    marginHorizontal: 3,
-    borderRadius: 2,
-  },
-  btn: {
+  container: {
     flex: 1,
-    height: 50,
-    borderRadius: 5,
-    backgroundColor: "black",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#000',
   },
-  prevBtn: {
-    backgroundColor: "black",
-    borderColor: "black",
-    borderWidth: 1,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
   },
-  prevText: {
-    fontWeight: "bold",
-    fontSize: 15,
-    color: "white",
-  },
-  nextText: {
-    fontWeight: "bold",
-    fontSize: 15,
-    color: "white"
-  },
-  footerButtons: {
-    marginBottom: 20,
-    flexDirection: "row",
-  },
-  footerContainer: {
-    height: height * 0.25,
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  getStartedButton: {
-    backgroundColor: "black",
-    padding: 15,
-    borderRadius: 5,
-    marginTop: 20,
-    width: 150,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  getStartedText: {
-    fontWeight: "bold",
+  loadingText: {
+    color: '#fff',
     fontSize: 16,
-    color: "white"
   },
-  topSkipButton: {
-    position: "absolute",
-    top: 20,
-    left: 20,
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     zIndex: 1,
-    padding: 10,
   },
-  topSkipText: {
-    color: "#000",
+  content: {
+    flex: 1,
+    zIndex: 2,
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
+    justifyContent: 'space-between',
+  },
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    marginBottom: 8,
+  },
+  logoText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  tagline: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  mainContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+    lineHeight: 40,
+    marginBottom: 16,
+  },
+  heroTitleAccent: {
+    color: '#ff9500',
+  },
+  heroSubtitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 40,
+    paddingHorizontal: 10,
+  },
+  featuresContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 20,
+  },
+  feature: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  featureIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 149, 0, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 149, 0, 0.3)',
+  },
+  featureIconText: {
+    fontSize: 20,
+  },
+  featureText: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  ctaContainer: {
+    alignItems: 'center',
+  },
+  ctaButton: {
+    backgroundColor: '#ff9500',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    marginBottom: 12,
+    minWidth: 200,
+    shadowColor: '#ff9500',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  ctaButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  ctaButtonIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ctaButtonArrow: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  ctaSubtext: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
+    textAlign: 'center',
   },
 })
-
-export default OnboardingScreen
