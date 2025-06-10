@@ -13,7 +13,6 @@ import {
   ImageBackground
 } from "react-native"
 import { useRouter } from "expo-router"
-import AsyncStorage from "@react-native-async-storage/async-storage"
 import { LinearGradient } from 'expo-linear-gradient'
 import Animated, { 
   useSharedValue, 
@@ -22,11 +21,9 @@ import Animated, {
   withDelay,
   withSpring
 } from "react-native-reanimated"
+import { AppStorage } from "@/utils/storage"
 
 const { width, height } = Dimensions.get("window")
-
-// Key for AsyncStorage
-const ONBOARDING_COMPLETE_KEY = "onboarding_complete"
 
 export default function LandingScreen() {
   const router = useRouter()
@@ -42,10 +39,10 @@ export default function LandingScreen() {
     checkOnboardingStatus()
   }, [])
 
-  const checkOnboardingStatus = async () => {
+  const checkOnboardingStatus = () => {
     try {
-      const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY)
-      if (value === "true") {
+      const isCompleted = AppStorage.getOnboardingComplete()
+      if (isCompleted) {
         // Onboarding already completed, navigate to loginSignup
         router.replace("/loginSignup")
         return
@@ -67,12 +64,14 @@ export default function LandingScreen() {
   }
 
   // Mark onboarding as complete and navigate to loginSignup
-  const completeOnboarding = async () => {
+  const completeOnboarding = () => {
     try {
-      await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, "true")
+      AppStorage.setOnboardingComplete(true)
       router.replace("/loginSignup")
     } catch (error) {
       console.error("Error saving onboarding status:", error)
+      // Fallback: navigate anyway
+      router.replace("/loginSignup")
     }
   }
 

@@ -3,15 +3,15 @@ import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet, Ale
 import Icon from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import supabase from '@/DBconfig/supabaseClient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppStorage, StorageUtils } from '@/utils/storage';
 
 export default function Settings() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const checkOnboarding = () => {
       try {
-        const onboardingComplete = await AsyncStorage.getItem('onboarding_complete');
+        const onboardingComplete = AppStorage.getOnboardingComplete();
         if (!onboardingComplete) {
           // Redirect to root index.tsx in app folder
           router.replace('/');
@@ -35,14 +35,14 @@ export default function Settings() {
     }
   };
 
-  const clearData = async () => {
+  const clearData = () => {
     try {
-      await AsyncStorage.clear();
+      StorageUtils.clearAll();
       Alert.alert('Success', 'All local data has been cleared');
       router.replace('/');
     } catch (e) {
       Alert.alert('Error', 'Failed to clear data');
-      console.error('Failed to clear async storage:', e);
+      console.error('Failed to clear MMKV storage:', e);
     }
   };
 
