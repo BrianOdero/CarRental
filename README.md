@@ -13,7 +13,13 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 2. Start the app
 
    ```bash
-    npx expo start
+   npm start
+   ```
+
+   Or use the development script:
+
+   ```bash
+   npm run dev
    ```
 
 In the output, you'll find options to open the app in a
@@ -25,6 +31,16 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Available Scripts
+
+- `npm start` or `npm run dev` - Start the development server
+- `npm run android` - Start the app on Android
+- `npm run ios` - Start the app on iOS
+- `npm run web` - Start the app on web
+- `npm test` - Run tests
+- `npm run lint` - Run linting
+- `npm run clean` - Clean and reinstall dependencies
+
 ## Get a fresh project
 
 When you're ready, run:
@@ -34,6 +50,22 @@ npm run reset-project
 ```
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Package Management
+
+This project uses npm as the package manager. Make sure you have Node.js 18+ and npm 8+ installed.
+
+To install new dependencies:
+
+```bash
+npm install <package-name>
+```
+
+To install development dependencies:
+
+```bash
+npm install --save-dev <package-name>
+```
 
 ## Learn more
 
@@ -48,4 +80,7 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
 # CarRental
+
+A premium car rental application built with Expo and React Native.

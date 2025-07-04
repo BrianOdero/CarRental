@@ -10,7 +10,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "install": "npm install",
+    "dev": "expo start",
+    "build": "expo build",
+    "clean": "npm run reset-project && npm install"
   },
   "jest": {
     "preset": "jest-expo"
@@ -62,5 +66,9 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^5.8.2"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
 }
