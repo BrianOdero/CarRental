@@ -2,7 +2,7 @@ import { AuthProvider, useAuth } from "@/provider/AuthProvider";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StatusBar, View } from "react-native";
 
 export default function RootLayout() {
   const InitialLayout = () => {
@@ -45,7 +45,9 @@ export default function RootLayout() {
     }
 
     return (
+      
       <Stack>
+        <StatusBar barStyle="dark-content" />
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="loginSignup" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -54,10 +56,12 @@ export default function RootLayout() {
   };
 
   return (
+    <Slot>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <InitialLayout />
       </AuthProvider>
     </GestureHandlerRootView>
+    </Slot>
   );
 }
