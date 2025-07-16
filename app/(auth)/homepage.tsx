@@ -15,6 +15,7 @@ import { useRouter } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
 import supabase from "@/DBconfig/supabaseClient"
 import { useQuery } from "@tanstack/react-query"
+import { ScrollView } from "react-native-gesture-handler"
 
 type vehicleData = {
   id: string
@@ -183,30 +184,39 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Brand filters */}
+      {/* Brand filters - UPDATED SECTION */}
       <View style={styles.brandFiltersContainer}>
-        {carBrands.map((brand) => {
-          const isSelected = selectedBrand === brand.id
-          return (
-            <TouchableOpacity
-              key={brand.id}
-              style={[
-                styles.brandFilter,
-                isSelected && styles.selectedBrandFilter,
-              ]}
-              onPress={() => setSelectedBrand(brand.id)}
-            >
-              <Text
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.brandFiltersContent}
+          decelerationRate="fast"
+          snapToAlignment="start"
+        >
+          {carBrands.map((brand) => {
+            const isSelected = selectedBrand === brand.id
+            return (
+              <TouchableOpacity
+                key={brand.id}
                 style={[
-                  styles.brandText,
-                  isSelected && styles.selectedBrandText,
+                  styles.brandFilter,
+                  isSelected && styles.selectedBrandFilter,
+                  isSelected && styles.selectedShadow,
                 ]}
+                onPress={() => setSelectedBrand(brand.id)}
               >
-                {brand.name}
-              </Text>
-            </TouchableOpacity>
-          )
-        })}
+                <Text
+                  style={[
+                    styles.brandText,
+                    isSelected && styles.selectedBrandText,
+                  ]}
+                >
+                  {brand.name}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
       </View>
 
       {/* Available Cars header */}
@@ -266,26 +276,46 @@ const styles = StyleSheet.create({
   searchIcon: {
     padding: 4,
   },
+  // UPDATED BRAND FILTERS STYLES
   brandFiltersContainer: {
-    flexDirection: "row",
+    height: 60,
     marginBottom: 16,
   },
-  brandFilter: {
+  brandFiltersContent: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginRight: 8,
+    alignItems: 'center',
+  },
+  brandFilter: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+    marginRight: 12,
     backgroundColor: "white",
+    minWidth: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   selectedBrandFilter: {
     backgroundColor: "#000",
+    borderColor: '#000',
+  },
+  selectedShadow: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   brandText: {
-    fontSize: 14,
+    fontSize: 15,
+    fontWeight: '500',
     color: "#333",
   },
   selectedBrandText: {
     color: "white",
+    fontWeight: '600',
   },
   availableCarsHeader: {
     flexDirection: "row",

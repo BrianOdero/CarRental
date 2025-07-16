@@ -47,7 +47,7 @@ const Slide = ({ item, onButtonPress }: { item: any; onButtonPress?: () => void 
     <Text style={item.id === "0" ? styles.welcomeSubtitle : styles.subtitle}>{item.subtitle}</Text>
     {item.id === "0" && (
       <TouchableOpacity onPress={onButtonPress} style={styles.getStartedButton} activeOpacity={0.7}>
-        <Text style={styles.getStartedText}>Finish Onboarding</Text>
+        <Text style={styles.getStartedText}>GET STARTED</Text>
       </TouchableOpacity>
     )}
   </View>
@@ -165,7 +165,7 @@ const OnboardingScreen = ({ navigation }: { navigation: any }) => {
               onPress={currentSlideIndex === slides.length - 1 ? completeOnboarding : goToNextSlide}
               style={styles.btn}
             >
-              <Text style={styles.nextText}>{currentSlideIndex === slides.length - 1 ? "GET STARTED" : "NEXT"}</Text>
+              <Text style={styles.nextText}>{currentSlideIndex === slides.length - 1 ? "FINISH ONBOARDING" : "NEXT"}</Text>
             </TouchableOpacity>
           </View>
         </>
