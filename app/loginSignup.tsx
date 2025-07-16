@@ -36,10 +36,10 @@ export default function Index() {
       setFormData({ email: "", password: "", confirmPassword: "" });
       setLoading(false);
     } else {
-      Alert.alert("Login Successful");
       logInsert();
       setFormData({ email: "", password: "", confirmPassword: "" });
       setLoading(false);
+      // Navigation will be handled by the auth provider
     }
   };
 

@@ -30,8 +30,11 @@ export default function Settings() {
     if (error) {
       console.error('Error signing out:', error);
     } else {
+      // Clear onboarding status on sign out if you want users to see onboarding again
+      // AppStorage.setOnboardingComplete(false);
+      
+      // Navigation will be handled by the auth provider
       Alert.alert('SignOut successful');
-      router.replace('/');
     }
   };
 
@@ -39,7 +42,7 @@ export default function Settings() {
     try {
       StorageUtils.clearAll();
       Alert.alert('Success', 'All local data has been cleared');
-      router.replace('/');
+      // Navigation will be handled by the auth provider after clearing data
     } catch (e) {
       Alert.alert('Error', 'Failed to clear data');
       console.error('Failed to clear MMKV storage:', e);

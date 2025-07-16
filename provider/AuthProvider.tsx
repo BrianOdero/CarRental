@@ -25,6 +25,7 @@ export function AuthProvider ({children}: PropsWithChildren) {
     //useEffect for listening on authentication state change
     useEffect(() => {
         const {data} = supabase.auth.onAuthStateChange(async(event, session) => {
+            console.log('Auth state changed:', event, session?.user?.email);
             setSession(session)
             setUser(session?.user ?? null)
             setInitialized(true)

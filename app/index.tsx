@@ -67,11 +67,16 @@ export default function LandingScreen() {
   const completeOnboarding = () => {
     try {
       AppStorage.setOnboardingComplete(true)
-      router.replace("/loginSignup")
+      // Small delay to ensure storage is written
+      setTimeout(() => {
+        router.replace("/loginSignup")
+      }, 100)
     } catch (error) {
       console.error("Error saving onboarding status:", error)
       // Fallback: navigate anyway
-      router.replace("/loginSignup")
+      setTimeout(() => {
+        router.replace("/loginSignup")
+      }, 100)
     }
   }
 
