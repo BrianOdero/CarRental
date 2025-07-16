@@ -58,24 +58,31 @@ export default function PaymentScreen() {
 
   const password = btoa(`174379bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919${timestamp}`)
 
-  const getAccessToken = async () => {
-    try {
-      let headers = new Headers();
-      headers.append("Authorization", "Basic aks1UTZObmp5ZXk1R2kyVjIyVkVOaThWT3FMdUNMazRtS3pReGVoTWhDNVdtU253OklJMVJBVXR5WkM1aVN1Vjk2OUpSMW9iRjgxNGRhTTZ3RWNmS3V1QmxybEduSXEyczFaS0ZnR0c5WTlFTEE5MTg=");
-  
-      const response = await fetch("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
+const getAccessToken = async () => {
+  try {
+    let headers = new Headers();
+    headers.append("Authorization", "Basic NGJVQmMxZGFsOHNHOW1EbEswRGdZUndreUdaR0xqcDlIVURpR0pkd2F0ajR0RmY2OlM1eEFGOUNHdTJzbjZ3NkF5YkFBSXJ3M0huanBVNDNFc0pRNDk5WkhxblVWZmdGSktVR3VueGpMSEdNQ1o1MVA=");
+
+    const response = await fetch(
+      "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
+      {
         method: "GET",
-        headers,
-      });
-  
-      const data = await response.json();
-      console.log("Access token:", data.access_token);
-      return data.access_token;
-    } catch (error) {
-      console.error("❌ Failed to get access token:", error);
-      return null;
+        headers: headers,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+    console.log("Access token:", data.access_token);
+    return data.access_token;
+  } catch (error) {
+    console.error("❌ Failed to get access token:", error);
+    return null;
+  }
+};
   
 
   const handleSTK = async () => {
@@ -94,11 +101,11 @@ export default function PaymentScreen() {
           "Password": password,
           "Timestamp": timestamp,
           "TransactionType": "CustomerPayBillOnline",
-          "Amount": 1,
+          "Amount": price,
           "PartyA": Number(phoneNumber),
           "PartyB": 174379,
           "PhoneNumber": Number(phoneNumber),
-          "CallBackURL": "https://alluring-flow-production-7d19.up.railway.app/callback",
+          "CallBackURL": "https://car-rental-mpesa-callback-third-year.onrender.com/callback",
           "AccountReference": "CompanyXLTD",
           "TransactionDesc": "Payment of X"
         })
@@ -216,7 +223,7 @@ export default function PaymentScreen() {
     console.log("✅ Record inserted successfully:", data)
   }
 
-  const formatDate = (date) => {
+  const formatDate = (date: any) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -224,7 +231,7 @@ export default function PaymentScreen() {
     })
   }
 
-  const onStartDateChange = (event, selectedDate) => {
+  const onStartDateChange = (event: any, selectedDate: any) => {
     const currentDate = selectedDate || startDate
     setShowStartDatePicker(false)
     setStartDate(currentDate)
@@ -235,7 +242,7 @@ export default function PaymentScreen() {
     }
   }
 
-  const onEndDateChange = (event, selectedDate) => {
+  const onEndDateChange = (event: any, selectedDate: any) => {
     const currentDate = selectedDate || endDate
     setShowEndDatePicker(false)
     setEndDate(currentDate)
