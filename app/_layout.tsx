@@ -3,7 +3,8 @@ import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ActivityIndicator, StatusBar, View } from "react-native";
-import { AppStorage } from "@/utils/storage";
+import { AppStorage } from "@/utils/storage"
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 function InitialLayout() {
   const { session, initialized } = useAuth();
@@ -68,6 +69,7 @@ function InitialLayout() {
 }
 
 export default function RootLayout() {
+  useFrameworkReady();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
