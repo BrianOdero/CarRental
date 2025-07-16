@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     
   },
   textInput:{
-    borderColor: "#007bff",
+    borderColor: "#f90",
     borderWidth: 1,
     borderRadius: 5,
     padding: 10,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   submitButton:{
-    backgroundColor: "#007bff",
+    backgroundColor: "#f90",
     margin: 10,
     borderRadius: 5,
     width: "auto",
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   link:{
-    color: "#007bff",
+    color: "#f90",
     marginLeft: 10
   }
 })

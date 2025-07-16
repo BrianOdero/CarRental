@@ -1,5 +1,6 @@
 import {
-  View, Text, Image, StyleSheet, TouchableOpacity,ScrollView
+  View, Text, Image, StyleSheet, TouchableOpacity,ScrollView,
+  Dimensions
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +13,9 @@ export default function CarDetails() {
   const params = useLocalSearchParams();
 
   const [expanded, setExpanded] = useState<boolean>(false);
+
+  const {width} = Dimensions.get('screen')
+  
 
   
   
@@ -28,9 +32,9 @@ export default function CarDetails() {
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Car Details</Text>
-        <TouchableOpacity style={styles.menuButton}>
+        {/* <TouchableOpacity style={styles.menuButton}>
           <Ionicons name="ellipsis-horizontal" size={24} color="white" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -41,9 +45,9 @@ export default function CarDetails() {
         <View style={styles.detailsCard}>
           <View style={styles.nameRow}>
             <Text style={styles.carName}>{params.carBrand} {params.name} - {params.price} / day</Text>
-            <TouchableOpacity style={styles.favoriteButton}>
+            {/* <TouchableOpacity style={styles.favoriteButton}>
               <Ionicons name="heart-outline" size={24} color="#FF3B30" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           <View style={styles.ratingContainer}>
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },

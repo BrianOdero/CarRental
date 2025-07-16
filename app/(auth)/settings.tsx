@@ -39,7 +39,7 @@ export default function Settings() {
     try {
       await AsyncStorage.clear();
       Alert.alert('Success', 'All local data has been cleared');
-      router.replace('/');
+      router.replace("../homepage");
     } catch (e) {
       Alert.alert('Error', 'Failed to clear data');
       console.error('Failed to clear async storage:', e);
