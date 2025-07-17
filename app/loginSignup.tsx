@@ -133,10 +133,10 @@ export default function Index() {
           </View>
         </TouchableOpacity>
 
-         <TouchableOpacity onPress={async () => {const {data,error} = await supabase.auth.signInAnonymously()}} style={{backgroundColor: "transparent", alignItems: "center",margin: 10}}>
+         {/* <TouchableOpacity onPress={async () => {const {data,error} = await supabase.auth.signInAnonymously()}} style={{backgroundColor: "transparent", alignItems: "center",margin: 10}}>
          <Text style={{margin: 10}}><Text style={styles.link}>Sign In As A Guest User</Text>
         </Text>
-       </TouchableOpacity>
+       </TouchableOpacity> */}
 
        <TouchableOpacity onPress={() => {setIsLogin(!isLogin)}} style={{backgroundColor: "transparent", alignItems: "center",margin: 10}}>
          <Text style={{margin: 10}}>{isLogin ? "Don't have an account?" : "Already have an account?"} <Text style={styles.link}>{isLogin ? "Sign Up" : "Login"}</Text>
