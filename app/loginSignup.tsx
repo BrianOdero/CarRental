@@ -2,6 +2,7 @@ import { Alert, Button, StyleSheet, Text, TextInput, TouchableOpacity, View } fr
 import LottieView from 'lottie-react-native'
 import { useState } from "react";
 import supabase from "@/DBconfig/supabaseClient";
+import { router } from "expo-router";
 export default function Index() {
 
 
@@ -27,6 +28,10 @@ export default function Index() {
     if(error) console.log(error)
 
   }
+
+   const navigateToResetPassword = () => {
+      router.push("/reset-password");
+    };
 
 
 
@@ -115,12 +120,23 @@ export default function Index() {
             secureTextEntry={!showPassword}
         />
         )}
+
+         {isLogin && (
+        <TouchableOpacity onPress={navigateToResetPassword}>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
+      )}
         
         <TouchableOpacity onPress={isLogin ? login : signup}>
           <View style={styles.submitButton} >
             <Text style={{color: "white", fontWeight: "bold"}}>{isLogin ? "Login" : "Sign Up"}</Text>
           </View>
         </TouchableOpacity>
+
+         <TouchableOpacity onPress={async () => {const {data,error} = await supabase.auth.signInAnonymously()}} style={{backgroundColor: "transparent", alignItems: "center",margin: 10}}>
+         <Text style={{margin: 10}}><Text style={styles.link}>Sign In As A Guest User</Text>
+        </Text>
+       </TouchableOpacity>
 
        <TouchableOpacity onPress={() => {setIsLogin(!isLogin)}} style={{backgroundColor: "transparent", alignItems: "center",margin: 10}}>
          <Text style={{margin: 10}}>{isLogin ? "Don't have an account?" : "Already have an account?"} <Text style={styles.link}>{isLogin ? "Sign Up" : "Login"}</Text>
@@ -169,5 +185,12 @@ const styles = StyleSheet.create({
   link:{
     color: "#f90",
     marginLeft: 10
-  }
+  },
+    forgotPasswordText: {
+    color: "#f90",
+    textAlign: "right",
+    marginBottom: 15,
+    fontWeight: "500",
+    margin: 10
+  },
 })

@@ -66,6 +66,8 @@ const Homepage = () => {
     setRefreshing(false)
   }
 
+   
+
   const handlePress = (item: vehicleData) => {
     router.push({
       pathname: "/(auth)/[id]" as any,
