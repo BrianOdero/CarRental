@@ -16,33 +16,9 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import supabase from "@/DBconfig/supabaseClient"
 import { useQuery } from "@tanstack/react-query"
 import { ScrollView } from "react-native-gesture-handler"
+import { vehicleData } from "@/types/types"
+import { carBrands } from "@/data/data"
 
-type vehicleData = {
-  id: string
-  name: string
-  logo: string
-  price: string
-  carType: string
-  carPass: string
-  personLogo: string
-  topSpeed: string
-  carBrand: string
-  show_room: string
-  transmission: string
-  description: string
-  ownerName: string
-  ownerNumber: number
-  doorCount: number
-  HorsePower: number
-}
-
-const carBrands = [
-  { id: "all", name: "All" },
-  { id: "toyota", name: "Toyota" },
-  { id: "mitsubishi", name: "Mitsubishi" },
-  { id: "bmw", name: "BMW" },
-  { id: "honda", name: "Honda" },
-]
 
 const Homepage = () => {
   const router = useRouter()
