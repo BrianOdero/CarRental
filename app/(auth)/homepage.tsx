@@ -1,5 +1,5 @@
-
 import {
+  Animated,
   FlatList,
   Image,
   StyleSheet,
@@ -25,6 +25,8 @@ const Homepage = () => {
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const { vehicles, setVehicles } = useVehicleContext()
+  const [showAILabel, setShowAILabel] = useState(true)
+  const fadeAnim = useState(new Animated.Value(1))[0]
 
   useEffect(() => {
     const fetchVehicle = async () => {
@@ -33,6 +35,17 @@ const Homepage = () => {
       setVehicles(data as vehicleData[])
     }
     fetchVehicle()
+    
+    // AI label timeout
+    const timer = setTimeout(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start(() => setShowAILabel(false))
+    }, 3000)
+    
+    return () => clearTimeout(timer)
   }, [])
 
   const filterVehicles = (
@@ -65,8 +78,6 @@ const Homepage = () => {
     if (!error) setVehicles(data as vehicleData[])
     setRefreshing(false)
   }
-
-   
 
   const handlePress = (item: vehicleData) => {
     router.push({
@@ -187,25 +198,31 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-            backgroundColor: "black",
-            padding: 16,
-            borderRadius: 50,
-            elevation: 5,
-            zIndex: 999,
-          }}
-          onPress={() => router.push("/(auth)/AIchat")}
+      {/* AI Assistant Label */}
+      {showAILabel && (
+        <Animated.View 
+          style={[
+            styles.aiLabel,
+            { opacity: fadeAnim }
+          ]}
         >
-          <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
-</TouchableOpacity>
+          <Text style={styles.aiLabelText}>AI Assistant</Text>
+        </Animated.View>
+      )}
 
+      <TouchableOpacity
+        style={styles.chatButton}
+        onPress={() => router.push("/(auth)/AIchat")}
+      >
+        <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
+      </TouchableOpacity>
 
       {vehicles.length === 0 ? (
-        <Text style={styles.loadingText}>No vehicles available</Text>
+        <Text style={styles.emptyText}>No vehicles available in the system</Text>
+      ) : filteredVehicles.length === 0 ? (
+        <Text style={styles.emptyText}>
+          No vehicles match {selectedBrand !== "all" ? "the selected brand" : "your search"}
+        </Text>
       ) : (
         <FlatList
           data={filteredVehicles}
@@ -250,7 +267,6 @@ const styles = StyleSheet.create({
   searchIcon: {
     padding: 4,
   },
-  // UPDATED BRAND FILTERS STYLES
   brandFiltersContainer: {
     height: 60,
     marginBottom: 16,
@@ -375,6 +391,36 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: "#666",
     fontSize: 16,
+  },
+  emptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
+    color: "#666",
+  },
+  aiLabel: {
+    position: "absolute",
+    bottom: 70,
+    right: 20,
+    backgroundColor: "transparent",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    zIndex: 1000,
+  },
+  aiLabelText: {
+    color: "black",
+    fontSize: 12,
+  },
+  chatButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "black",
+    padding: 16,
+    borderRadius: 50,
+    elevation: 5,
+    zIndex: 999,
   },
 })
 
