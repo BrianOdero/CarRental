@@ -121,11 +121,11 @@ export default function Index() {
         />
         )}
 
-         {isLogin && (
+         {/* {isLogin && (
         <TouchableOpacity onPress={navigateToResetPassword}>
           <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
-      )}
+      )} */}
         
         <TouchableOpacity onPress={isLogin ? login : signup}>
           <View style={styles.submitButton} >
