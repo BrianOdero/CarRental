@@ -3,6 +3,7 @@ import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ActivityIndicator, StatusBar, View } from "react-native";
+import { VehicleProvider } from "@/contexts/VehicleContext";
 
 export default function RootLayout() {
   const InitialLayout = () => {
@@ -55,10 +56,12 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar barStyle={"dark-content"}/>
-      <AuthProvider>
-        <InitialLayout />
-      </AuthProvider>
+      <VehicleProvider>
+        <StatusBar barStyle={"dark-content"}/>
+        <AuthProvider>
+          <InitialLayout />
+        </AuthProvider>
+      </VehicleProvider>
     </GestureHandlerRootView>
   );
 }

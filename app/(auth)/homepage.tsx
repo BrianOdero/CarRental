@@ -1,4 +1,3 @@
-"use client"
 
 import {
   FlatList,
@@ -9,22 +8,32 @@ import {
   TouchableOpacity,
   View,
 } from "react-native"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Ionicons from "@expo/vector-icons/Ionicons"
 import { useRouter } from "expo-router"
 import { SafeAreaView } from "react-native-safe-area-context"
-import supabase from "@/DBconfig/supabaseClient"
-import { useQuery } from "@tanstack/react-query"
 import { ScrollView } from "react-native-gesture-handler"
 import { vehicleData } from "@/types/types"
 import { carBrands } from "@/data/data"
 
+import supabase from "@/DBconfig/supabaseClient"
+import { useVehicleContext } from "@/contexts/VehicleContext"
 
 const Homepage = () => {
   const router = useRouter()
   const [selectedBrand, setSelectedBrand] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [refreshing, setRefreshing] = useState<boolean>(false)
+  const { vehicles, setVehicles } = useVehicleContext()
+
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      const { data, error } = await supabase.from("Vehicle").select("*")
+      if (error) throw error
+      setVehicles(data as vehicleData[])
+    }
+    fetchVehicle()
+  }, [])
 
   const filterVehicles = (
     vehicles: vehicleData[] = [],
@@ -50,34 +59,10 @@ const Homepage = () => {
     return filtered
   }
 
-  const fetchVehicle = async () => {
-    const { data, error } = await supabase
-      .from("Vehicle")
-      .select("*")
-      .order("price", { ascending: false })
-
-    if (error) throw error
-
-    return (data as vehicleData[]).map((vehicle) => ({
-      ...vehicle,
-      location: "New York",
-      rating: 4.9,
-      reviews: 128,
-    }))
-  }
-
-  const {
-    data: vehicles,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["vehicles"],
-    queryFn: fetchVehicle,
-  })
-
   const handleRefresh = async () => {
     setRefreshing(true)
-    await refetch()
+    const { data, error } = await supabase.from("Vehicle").select("*")
+    if (!error) setVehicles(data as vehicleData[])
     setRefreshing(false)
   }
 
@@ -147,7 +132,6 @@ const Homepage = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Book A Vehicle Anytime</Text>
 
-      {/* Search input */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -160,7 +144,6 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Brand filters - UPDATED SECTION */}
       <View style={styles.brandFiltersContainer}>
         <ScrollView
           horizontal
@@ -195,7 +178,6 @@ const Homepage = () => {
         </ScrollView>
       </View>
 
-      {/* Available Cars header */}
       <View style={styles.availableCarsHeader}>
         <Text style={styles.availableCarsText}>Available Cars</Text>
         <TouchableOpacity style={styles.filterIcon}>
@@ -203,10 +185,24 @@ const Homepage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Vehicle List or Fallback */}
-      {isLoading ? (
-        <Text style={styles.loadingText}>Loading...</Text>
-      ) : filteredVehicles.length === 0 ? (
+      <TouchableOpacity
+          style={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            backgroundColor: "black",
+            padding: 16,
+            borderRadius: 50,
+            elevation: 5,
+            zIndex: 999,
+          }}
+          onPress={() => router.push("/(auth)/AIchat")}
+        >
+          <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
+</TouchableOpacity>
+
+
+      {vehicles.length === 0 ? (
         <Text style={styles.loadingText}>No vehicles available</Text>
       ) : (
         <FlatList
